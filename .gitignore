@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+vytari.db
+static/uploads/*
+!static/uploads/.gitkeep
+flask.log
+*.log

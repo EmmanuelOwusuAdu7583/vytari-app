@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Edit Care Plan — Vytari" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+{% set topbar_title = "Care Plan — " + patient.name %}
+{% set back_url = url_for('patient_detail', patient_id=patient.id) %}
+{% include "_stitch_topbar.html" %}
+<main class="pt-20 pb-28 px-margin-page max-w-md sm:max-w-2xl mx-auto flex flex-col gap-stack-md">
+{% include "_stitch_flash.html" %}
+{% from "_safety_banner.html" import safety_banner %}
+{{ safety_banner("Saving creates a new version and keeps the full history — nothing here is auto-adjusted by the app.") }}
+
+<form method="POST" class="flex flex-col gap-stack-md">
+<div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding flex flex-col gap-stack-md">
+<div class="flex flex-col gap-1">
+<label class="text-sm font-semibold text-on-surface-variant">Target glucose range</label>
+<div class="flex items-center gap-2">
+<input class="flex-1 h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" type="number" step="0.1" name="target_min" placeholder="Min" value="{{ current.target_min if current }}" required/>
+<span class="text-on-surface-variant text-sm">to</span>
+<input class="flex-1 h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" type="number" step="0.1" name="target_max" placeholder="Max" value="{{ current.target_max if current }}" required/>
+<select class="flex-1 h-12 border border-outline-variant bg-surface-container-low rounded-lg px-2 text-on-surface" name="unit">
+<option value="mg/dL" {{ 'selected' if not current or current.unit == 'mg/dL' }}>mg/dL</option>
+<option value="mmol/L" {{ 'selected' if current and current.unit == 'mmol/L' }}>mmol/L</option>
+</select>
+</div>
+</div>
+</div>
+
+<div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding flex flex-col gap-stack-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">opacity</span>
+<label class="text-sm font-bold text-on-surface-variant uppercase tracking-wide">Basal insulin (optional)</label>
+</div>
+<input class="h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" type="text" name="basal_name" placeholder="Name, e.g. Lantus (Basal)" value="{{ current.basal_name if current }}"/>
+<input class="h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" type="text" name="basal_description" placeholder="Description, e.g. Long-acting bedtime" value="{{ current.basal_description if current }}"/>
+<div class="flex gap-2">
+<input class="flex-1 h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" type="text" name="basal_units" placeholder="Dose, e.g. 24u" value="{{ current.basal_units if current }}"/>
+<input class="flex-1 h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" type="text" name="basal_frequency" placeholder="Frequency, e.g. Daily" value="{{ current.basal_frequency if current }}"/>
+</div>
+</div>
+
+<div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding flex flex-col gap-stack-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">restaurant</span>
+<label class="text-sm font-bold text-on-surface-variant uppercase tracking-wide">Bolus insulin (optional)</label>
+</div>
+<input class="h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" type="text" name="bolus_name" placeholder="Name, e.g. Novolog (Bolus)" value="{{ current.bolus_name if current }}"/>
+<input class="h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" type="text" name="bolus_description" placeholder="Description, e.g. Rapid-acting w/ meals" value="{{ current.bolus_description if current }}"/>
+<input class="h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" type="text" name="bolus_ratio" placeholder="Carb ratio, e.g. 1u : 15g" value="{{ current.bolus_ratio if current }}"/>
+</div>
+
+<div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding flex flex-col gap-1">
+<label class="text-sm font-semibold text-on-surface-variant" for="instructions">Physician notes</label>
+<textarea class="border border-outline-variant bg-surface-container-low rounded-lg px-4 py-3 text-on-surface min-h-[80px]" id="instructions" name="instructions" placeholder="Any other guidance for this patient — shown to them as a quoted note">{{ current.instructions if current }}</textarea>
+</div>
+
+<button type="submit" class="w-full bg-primary text-on-primary py-3.5 rounded-full font-headline-sm text-headline-sm shadow-md liquid-glass liquid-expand flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">check_circle</span> Save new version{{ ' (v' ~ (current.version + 1) ~ ')' if current }}
+</button>
+</form>
+</main>
+{% include "_stitch_bottomnav_doctor.html" %}
+</body></html>

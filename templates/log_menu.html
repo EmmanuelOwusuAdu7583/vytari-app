@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Log — Vytari" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+{% set topbar_title = "What would you like to log?" %}
+{% include "_stitch_topbar.html" %}
+<main class="pt-20 pb-28 px-margin-page max-w-md sm:max-w-2xl mx-auto flex flex-col gap-stack-sm">
+{% include "_stitch_flash.html" %}
+
+<a href="{{ url_for('log_glucose') }}" class="bento-card bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container/40 flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div class="flex-1">
+<p class="font-bold text-on-surface">Blood glucose</p>
+<p class="text-sm text-on-surface-variant">Manual entry, mg/dL or mmol/L</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</a>
+<a href="{{ url_for('log_insulin') }}" class="bento-card bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container/60 flex items-center justify-center text-on-secondary-container flex-shrink-0">
+<span class="material-symbols-outlined">vaccines</span>
+</div>
+<div class="flex-1">
+<p class="font-bold text-on-surface">Insulin dose</p>
+<p class="text-sm text-on-surface-variant">Log what you took &mdash; not what to take</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</a>
+<a href="{{ url_for('log_meal') }}" class="bento-card bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<div class="flex-1">
+<p class="font-bold text-on-surface">Meal / carbs</p>
+<p class="text-sm text-on-surface-variant">Snap a photo or enter manually</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</a>
+<a href="{{ url_for('log_symptoms') }}" class="bento-card bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary-container/60 flex items-center justify-center text-on-tertiary-container flex-shrink-0">
+<span class="material-symbols-outlined">sick</span>
+</div>
+<div class="flex-1">
+<p class="font-bold text-on-surface">Symptoms</p>
+<p class="text-sm text-on-surface-variant">Quick-tap common symptoms</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</a>
+</main>
+{% include "_stitch_bottomnav_patient.html" %}
+</body></html>

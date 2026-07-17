@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Vytari | Your Partner in Diabetes Care" %}
+{% include "_stitch_head.html" %}
+<style>
+    .hero-mesh {
+        background-color: #f8f9fb;
+        background-image:
+            radial-gradient(at 0% 0%, hsla(102, 42%, 91%, 1) 0, transparent 50%),
+            radial-gradient(at 100% 0%, hsla(196, 85%, 93%, 1) 0, transparent 50%),
+            radial-gradient(at 50% 100%, hsla(102, 41%, 88%, 0.5) 0, transparent 50%);
+    }
+    .premium-glow {
+        box-shadow: 0 0 20px rgba(61, 105, 43, 0.2);
+    }
+</style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col items-center overflow-x-hidden hero-mesh">
+<header class="w-full pt-10 pb-6 flex flex-col items-center justify-center z-50">
+<div class="flex flex-col items-center gap-3">
+<div class="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center p-2.5">
+<img alt="Vytari" class="w-full h-full object-contain rounded-lg" src="{{ url_for('static', filename='icons/icon-192.png') }}"/>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Vytari</span>
+</div>
+</header>
+<main class="flex-1 w-full max-w-md px-margin-page py-6 flex flex-col items-center text-center">
+<div class="mb-stack-lg">
+<h1 class="font-display-lg text-display-lg text-on-background mb-4 px-4 leading-tight">
+                Health in Every Heartbeat
+            </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[300px] mx-auto opacity-80">
+                Your partner in diabetes monitoring and personalized care coordination.
+            </p>
+</div>
+
+{% include "_stitch_flash.html" %}
+
+<div class="w-full mb-stack-md">
+{% from "_safety_banner.html" import safety_banner %}
+{{ safety_banner() }}
+</div>
+
+<div class="w-full space-y-5 mb-10">
+<a href="{{ url_for('patient_login') }}" class="w-full group bg-white/80 backdrop-blur-sm p-6 rounded-2xl card-shadow flex items-center gap-5 text-left border border-white/50 hover:border-primary-container transition-all active:scale-[0.98] duration-200">
+<div class="w-16 h-16 rounded-2xl bg-secondary-container/40 flex items-center justify-center text-on-secondary-container shrink-0">
+<span class="material-symbols-outlined text-4xl filled">person</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">I am a Patient</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">Track levels and manage your care plan seamlessly.</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40 group-hover:translate-x-1 group-hover:text-primary transition-all">arrow_forward_ios</span>
+</a>
+<a href="{{ url_for('doctor_login') }}" class="w-full group bg-white/80 backdrop-blur-sm p-6 rounded-2xl card-shadow flex items-center gap-5 text-left border border-white/50 hover:border-primary-container transition-all active:scale-[0.98] duration-200">
+<div class="w-16 h-16 rounded-2xl bg-primary-container/30 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-4xl filled">medical_services</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">I am a Doctor</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">Monitor clinical data and guide patient outcomes.</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40 group-hover:translate-x-1 group-hover:text-primary transition-all text-sm">arrow_forward_ios</span>
+</a>
+</div>
+
+<div class="flex items-center gap-6 opacity-40 mb-8">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Encrypted</span>
+</div>
+<div class="w-1 h-1 bg-on-surface-variant rounded-full"></div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">clinical_notes</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Doctor-Directed Care</span>
+</div>
+</div>
+</main>
+<footer class="w-full max-w-md px-margin-page pb-12 flex flex-col items-center">
+<a href="{{ url_for('emergency_info') }}" class="w-full text-white py-4 rounded-2xl font-headline-sm text-headline-sm liquid-glass premium-glow transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
+<span class="material-symbols-outlined filled">emergency</span>
+            Emergency Information
+        </a>
+<div class="mt-8 py-2 px-6 bg-white/40 rounded-full backdrop-blur-sm border border-white/50">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Care team? <a class="text-primary font-bold ml-1 hover:underline" href="{{ url_for('admin_login') }}">Admin sign in</a>
+</p>
+</div>
+<p class="mt-4 font-body-md text-body-md text-on-surface-variant/70">
+<a href="{{ url_for('privacy') }}" class="underline">Privacy</a> &middot; <a href="{{ url_for('terms') }}" class="underline">Terms</a>
+</p>
+</footer>
+</body></html>

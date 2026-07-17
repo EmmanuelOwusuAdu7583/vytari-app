@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Add Patient — Vytari" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+{% set topbar_title = "Add Patient" %}
+{% set back_url = url_for('doctor_dashboard') %}
+{% include "_stitch_topbar.html" %}
+<main class="pt-20 pb-28 px-margin-page max-w-md sm:max-w-2xl mx-auto flex flex-col gap-stack-md">
+{% include "_stitch_flash.html" %}
+
+<form method="POST" class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding flex flex-col gap-stack-md">
+<div class="flex flex-col gap-1">
+<label class="text-sm font-semibold text-on-surface-variant" for="name">Patient name</label>
+<input class="h-12 border border-outline-variant bg-surface-container-low rounded-lg px-4 text-on-surface" type="text" id="name" name="name" required autofocus/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-sm font-semibold text-on-surface-variant" for="age">Age (optional)</label>
+<input class="h-12 border border-outline-variant bg-surface-container-low rounded-lg px-4 text-on-surface" type="number" min="1" max="129" id="age" name="age"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-sm font-semibold text-on-surface-variant" for="diabetes_type">Diabetes type</label>
+<select class="h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" id="diabetes_type" name="diabetes_type">
+<option value="">Not specified</option>
+<option value="Type 1">Type 1</option>
+<option value="Type 2">Type 2</option>
+<option value="Gestational">Gestational</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-sm font-semibold text-on-surface-variant" for="preferred_unit">Preferred glucose unit</label>
+<select class="h-12 border border-outline-variant bg-surface-container-low rounded-lg px-3 text-on-surface" id="preferred_unit" name="preferred_unit">
+<option value="mg/dL">mg/dL</option>
+<option value="mmol/L">mmol/L</option>
+</select>
+</div>
+<button type="submit" class="w-full bg-primary text-on-primary py-3.5 rounded-full font-headline-sm text-headline-sm shadow-md liquid-glass liquid-expand flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">add</span> Create patient account
+</button>
+</form>
+</main>
+{% include "_stitch_bottomnav_doctor.html" %}
+</body></html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+{% set page_title = "Log Reading - Vytari" %}
+{% include "_stitch_head.html" %}
+<style>
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+</style>
+</head>
+<body class="flex flex-col min-h-screen bg-surface text-on-surface">
+{% set topbar_title = "Log Reading" %}
+{% set back_url = url_for('log_menu') %}
+{% include "_stitch_topbar.html" %}
+<main class="flex-grow flex flex-col px-margin-page pt-20 pb-32 max-w-md sm:max-w-2xl mx-auto w-full">
+{% include "_stitch_flash.html" %}
+
+{% from "_safety_banner.html" import safety_banner %}
+<div class="mb-stack-md">{{ safety_banner() }}</div>
+
+<form method="POST" id="glucose-form">
+<input type="hidden" name="unit" id="unit-input" value="{{ preferred_unit }}"/>
+<input type="hidden" name="tag" id="tag-input" value=""/>
+<input type="hidden" name="reading_at" id="reading-at-input" value="{{ now }}"/>
+
+{% if sparkline_points %}
+<section>
+<div class="bg-surface-container-lowest rounded-xl p-container-padding shadow-[0_4px_24px_rgba(61,105,43,0.04)]">
+<div class="flex justify-between items-center mb-stack-sm">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant">RECENT TREND</h2>
+{% if avg_display is not none %}<span class="text-primary font-bold text-body-md">{{ avg_display }} avg</span>{% endif %}
+</div>
+<div class="w-full h-16 flex items-end gap-1">
+<svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 30">
+<defs>
+<linearGradient id="gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#3d692b;stop-opacity:0.2"></stop>
+<stop offset="100%" style="stop-color:#3d692b;stop-opacity:0"></stop>
+</linearGradient>
+</defs>
+<polyline points="{{ sparkline_points }}" fill="none" stroke="#3d692b" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></polyline>
+<polygon fill="url(#gradient)" points="{{ sparkline_points }} 100,30 0,30"></polygon>
+</svg>
+</div>
+</div>
+</section>
+{% endif %}
+
+<section class="mt-stack-lg flex flex-col items-center">
+<div class="text-center mb-stack-md">
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-2 uppercase tracking-widest">New Blood Glucose Entry</span>
+</div>
+<div class="relative w-full max-w-xs flex flex-col items-center">
+<div class="flex items-baseline gap-2 mb-stack-sm">
+<input autofocus class="w-full text-center bg-transparent border-none focus:ring-0 font-stat-lg text-stat-lg text-on-surface p-0 placeholder:text-surface-container-highest" name="value" placeholder="--" step="0.1" min="0" max="1000" type="number" required/>
+</div>
+<div class="bg-surface-container-low p-1 rounded-full flex gap-1">
+<button type="button" data-unit="mg/dL" class="unit-btn px-4 py-1.5 rounded-full text-label-caps font-label-caps active:scale-95 transition-transform {{ 'bg-primary text-on-primary' if preferred_unit == 'mg/dL' else 'text-on-surface-variant hover:bg-surface-container-highest' }}">mg/dL</button>
+<button type="button" data-unit="mmol/L" class="unit-btn px-4 py-1.5 rounded-full text-label-caps font-label-caps active:scale-95 transition-transform {{ 'bg-primary text-on-primary' if preferred_unit == 'mmol/L' else 'text-on-surface-variant hover:bg-surface-container-highest' }}">mmol/L</button>
+</div>
+</div>
+</section>
+
+<section class="mt-stack-lg">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-stack-sm">CONTEXT (OPTIONAL)</h3>
+<div class="grid grid-cols-2 gap-stack-sm">
+<button type="button" data-tag="fasting" class="context-btn flex items-center justify-center gap-2 p-4 rounded-xl bg-surface-container-low text-on-surface border-2 border-transparent transition-all text-body-md font-body-md">
+<span class="material-symbols-outlined text-body-lg">wb_twilight</span> Fasting
+</button>
+<button type="button" data-tag="post-meal" class="context-btn flex items-center justify-center gap-2 p-4 rounded-xl bg-surface-container-low text-on-surface border-2 border-transparent transition-all text-body-md font-body-md">
+<span class="material-symbols-outlined text-body-lg">restaurant</span> Post-meal
+</button>
+<button type="button" data-tag="bedtime" class="context-btn flex items-center justify-center gap-2 p-4 rounded-xl bg-surface-container-low text-on-surface border-2 border-transparent transition-all text-body-md font-body-md">
+<span class="material-symbols-outlined text-body-lg">bedtime</span> Bedtime
+</button>
+<button type="button" data-tag="random" class="context-btn flex items-center justify-center gap-2 p-4 rounded-xl bg-surface-container-low text-on-surface border-2 border-transparent transition-all text-body-md font-body-md">
+<span class="material-symbols-outlined text-body-lg">shuffle</span> Random
+</button>
+</div>
+</section>
+
+<section class="mt-stack-md">
+<label class="bg-surface-container-low rounded-xl p-4 flex items-center justify-between cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-outline">schedule</span>
+<span class="text-body-md font-body-md text-on-surface" id="reading-at-label">Recorded at {{ now_display }}</span>
+</div>
+<span class="text-primary font-label-caps text-label-caps">EDIT</span>
+<input type="datetime-local" id="reading-at-picker" value="{{ now }}" class="sr-only"/>
+</label>
+</section>
+
+<div class="mt-12">
+<button type="submit" id="save-btn" class="w-full py-4 bg-primary text-on-primary rounded-full font-headline-sm text-headline-sm shadow-xl shadow-primary/20 transition-all duration-200 liquid-glass liquid-expand">
+Log Reading
+</button>
+</div>
+</form>
+</main>
+{% include "_stitch_bottomnav_patient.html" %}
+
+<script>
+document.querySelectorAll('.unit-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    document.querySelectorAll('.unit-btn').forEach(function (b) {
+      b.classList.remove('bg-primary', 'text-on-primary');
+      b.classList.add('text-on-surface-variant');
+    });
+    btn.classList.add('bg-primary', 'text-on-primary');
+    btn.classList.remove('text-on-surface-variant');
+    document.getElementById('unit-input').value = btn.getAttribute('data-unit');
+  });
+});
+
+document.querySelectorAll('.context-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var alreadySelected = btn.classList.contains('bg-primary');
+    document.querySelectorAll('.context-btn').forEach(function (b) {
+      b.classList.remove('bg-primary', 'text-on-primary', 'shadow-lg', 'shadow-primary/20');
+      b.classList.add('bg-surface-container-low', 'text-on-surface');
+      var icon = b.querySelector('.material-symbols-outlined');
+      if (icon) icon.style.fontVariationSettings = "'FILL' 0";
+    });
+    if (!alreadySelected) {
+      btn.classList.remove('bg-surface-container-low', 'text-on-surface');
+      btn.classList.add('bg-primary', 'text-on-primary', 'shadow-lg', 'shadow-primary/20');
+      var icon = btn.querySelector('.material-symbols-outlined');
+      if (icon) icon.style.fontVariationSettings = "'FILL' 1";
+      document.getElementById('tag-input').value = btn.getAttribute('data-tag');
+    } else {
+      document.getElementById('tag-input').value = '';
+    }
+  });
+});
+
+var readingAtRow = document.querySelector('label.cursor-pointer');
+var readingAtPicker = document.getElementById('reading-at-picker');
+readingAtRow.addEventListener('click', function (e) {
+  e.preventDefault();
+  if (readingAtPicker.showPicker) readingAtPicker.showPicker();
+  else readingAtPicker.focus();
+});
+readingAtPicker.addEventListener('change', function () {
+  document.getElementById('reading-at-input').value = readingAtPicker.value;
+  var d = new Date(readingAtPicker.value);
+  document.getElementById('reading-at-label').textContent = 'Recorded at ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+});
+
+document.getElementById('glucose-form').addEventListener('submit', function () {
+  var btn = document.getElementById('save-btn');
+  if ('vibrate' in navigator) navigator.vibrate(50);
+  btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Saving...';
+});
+</script>
+</body></html>

@@ -1,0 +1,16 @@
+{% from "_icons.html" import icon_home, icon_patients, icon_chat, icon_profile %}
+<nav class="bottom-nav" aria-label="Doctor navigation">
+  <a href="{{ url_for('doctor_dashboard') }}" class="nav-item {{ 'active' if active == 'home' }}" aria-label="Dashboard">
+    {{ icon_home() }}<span>Dashboard</span>
+  </a>
+  <a href="{{ url_for('doctor_patients') }}" class="nav-item {{ 'active' if active == 'patients' }}" aria-label="Patients">
+    {{ icon_patients() }}<span>Patients</span>
+  </a>
+  <a href="{{ url_for('doctor_messages') }}" class="nav-item {{ 'active' if active == 'messages' }}" aria-label="Messages">
+    {{ icon_chat() }}<span>Messages</span>
+    {% if unread_messages_count and unread_messages_count > 0 %}<span class="nav-badge"></span>{% endif %}
+  </a>
+  <a href="{{ url_for('doctor_profile') }}" class="nav-item {{ 'active' if active == 'profile' }}" aria-label="Profile">
+    {{ icon_profile() }}<span>Profile</span>
+  </a>
+</nav>

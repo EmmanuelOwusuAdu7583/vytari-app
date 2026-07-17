@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Admin Login — Vytari" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col hero-gradient">
+<main class="flex-grow flex items-center justify-center px-margin-page py-stack-lg relative overflow-hidden">
+<div class="fixed top-[-10%] right-[-10%] w-72 h-72 bg-primary-container/20 rounded-full blur-[80px] -z-10"></div>
+<div class="w-full max-w-[420px] z-10">
+<div class="flex flex-col items-center text-center mb-stack-lg">
+<div class="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center text-on-surface-variant mb-stack-sm">
+<span class="material-symbols-outlined text-4xl filled">lock</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-on-background">Admin</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Onboard doctors onto Vytari</p>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden card-shadow">
+<div class="p-container-padding flex flex-col gap-stack-md">
+{% include "_stitch_flash.html" %}
+<form method="POST" class="flex flex-col gap-stack-md">
+<div class="flex flex-col gap-1">
+<label class="font-body-md text-body-md text-on-surface-variant ml-1" for="password">Admin password</label>
+<div class="relative flex items-center border border-outline-variant bg-surface-container-low rounded-lg focus-within:border-primary transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] pl-4">lock</span>
+<input class="w-full h-12 bg-transparent border-none focus:ring-0 px-3 text-on-surface" id="password" name="password" type="password" required autofocus/>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary py-3.5 rounded-full font-headline-sm text-headline-sm shadow-md liquid-glass liquid-expand" type="submit">Sign In</button>
+</form>
+</div>
+</div>
+<p class="text-center mt-stack-md font-body-md text-body-md text-on-surface-variant"><a href="{{ url_for('index') }}">&larr; Back to home</a></p>
+</div>
+</main>
+</body></html>

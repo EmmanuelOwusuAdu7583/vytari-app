@@ -1,0 +1,20 @@
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>{{ page_title|default('Vytari') }}</title>
+<link href="{{ url_for('static', filename='manifest.json') }}" rel="manifest"/>
+<meta content="#0052CC" name="theme-color"/>
+<meta content="yes" name="mobile-web-app-capable"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="default" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="Vytari" name="apple-mobile-web-app-title"/>
+<meta content="Vytari" name="application-name"/>
+<link href="{{ url_for('static', filename='icons/icon-192.png') }}" rel="apple-touch-icon"/>
+<link href="{{ url_for('static', filename='icons/icon-192.png') }}" rel="icon" type="image/png"/>
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet"/>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register("{{ url_for('service_worker') }}");
+  });
+}
+</script>

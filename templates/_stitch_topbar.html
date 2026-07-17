@@ -1,0 +1,23 @@
+<header class="fixed top-0 w-full z-50 bg-background/95 backdrop-blur border-b border-outline-variant h-16">
+<div class="h-full max-w-md sm:max-w-2xl mx-auto flex justify-between items-center px-margin-page">
+<div class="flex items-center gap-3 min-w-0">
+{% if back_url %}
+<a href="{{ back_url }}" class="material-symbols-outlined text-on-surface-variant p-1 -ml-1 rounded-full hover:bg-surface-container-high transition-colors" aria-label="Back">arrow_back</a>
+{% endif %}
+<span class="font-headline-sm text-headline-sm text-on-background truncate">{{ topbar_title|default('Vytari') }}</span>
+</div>
+<div class="flex items-center gap-2 flex-shrink-0">
+{% if session.get('patient_id') %}
+<a class="relative material-symbols-outlined text-primary p-2 rounded-full hover:bg-primary-container/20 transition-colors" href="{{ url_for('patient_notifications') }}" aria-label="Notifications">
+notifications
+{% if unread_notifications_count %}<span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-tertiary border border-surface"></span>{% endif %}
+</a>
+{% elif session.get('doctor_id') %}
+<a class="relative material-symbols-outlined text-primary p-2 rounded-full hover:bg-primary-container/20 transition-colors" href="{{ url_for('doctor_notifications') }}" aria-label="Notifications">
+notifications
+{% if unread_notifications_count %}<span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-tertiary border border-surface"></span>{% endif %}
+</a>
+{% endif %}
+</div>
+</div>
+</header>

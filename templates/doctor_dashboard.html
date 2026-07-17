@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Vytari - Doctor Dashboard" %}
+{% include "_stitch_head.html" %}
+<style>
+    .soft-shadow { box-shadow: 0 10px 30px -10px rgba(61, 105, 43, 0.08); }
+</style>
+</head>
+<body class="text-on-background min-h-screen pb-32 bg-background">
+<header class="w-full top-0 bg-surface flex justify-center items-center px-margin-page h-16 sticky z-50">
+<div class="flex items-center justify-between w-full max-w-md">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-on-primary font-bold overflow-hidden">
+{% if session.doctor_photo %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + session.doctor_photo) }}" alt=""/>{% else %}{{ initials }}{% endif %}
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Welcome back,</p>
+<h1 class="font-headline-md-mobile text-headline-md-mobile text-primary">{{ session.doctor_name }}</h1>
+</div>
+</div>
+<a class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-opacity" href="{{ url_for('doctor_notifications') }}">
+<span class="material-symbols-outlined">notifications</span>
+</a>
+</div>
+</header>
+<main class="px-margin-page pt-stack-md max-w-md sm:max-w-2xl mx-auto space-y-stack-lg">
+{% include "_stitch_flash.html" %}
+
+{% if active_alerts %}
+<section class="flex flex-col gap-stack-sm">
+{% for a in active_alerts %}
+<div class="rounded-xl border-2 border-tertiary bg-tertiary-container/25 p-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary filled">sos</span>
+<div class="flex-1 min-w-0">
+<p class="font-bold text-tertiary">EMERGENCY ALERT &mdash; {{ a.patient_name }}</p>
+{% if a.message %}<p class="text-sm text-on-background mt-0.5">{{ a.message }}</p>{% endif %}
+{% if a.latitude and a.longitude %}<a href="https://www.openstreetmap.org/?mlat={{ a.latitude }}&mlon={{ a.longitude }}#map=16/{{ a.latitude }}/{{ a.longitude }}" target="_blank" rel="noopener" class="text-sm text-tertiary underline">View location: {{ '%.4f'|format(a.latitude) }}°, {{ '%.4f'|format(a.longitude) }}°</a>{% endif %}
+<p class="text-sm text-on-surface-variant">{{ a.created_at }}</p>
+</div>
+</div>
+<div class="flex gap-2 mt-stack-sm">
+<a href="{{ url_for('doctor_patient_chat', patient_id=a.patient_id) }}" class="flex-1 text-center border border-outline-variant text-on-surface py-2 rounded-full text-sm font-bold bg-surface-container-lowest">Message patient</a>
+<form method="POST" action="{{ url_for('acknowledge_alert', alert_id=a.id) }}" class="flex-1">
+<button type="submit" class="w-full bg-tertiary text-on-tertiary py-2 rounded-full text-sm font-bold">Acknowledge</button>
+</form>
+</div>
+</div>
+{% endfor %}
+</section>
+{% endif %}
+
+<section>
+<form method="GET" action="{{ url_for('doctor_patients') }}" class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full h-14 pl-12 pr-4 bg-surface-container-low border-none rounded-xl font-body-md focus:ring-2 focus:ring-primary transition-all shadow-sm" name="q" placeholder="Search for patient lookups..." type="text"/>
+</form>
+</section>
+
+<section class="grid grid-cols-2 gap-4">
+<div class="bg-primary-container p-container-padding rounded-xl flex flex-col justify-between h-40 soft-shadow">
+<span class="material-symbols-outlined text-on-primary-container text-3xl">groups</span>
+<div>
+<h2 class="font-stat-lg text-stat-lg text-on-primary-container">{{ total_patients }}</h2>
+<p class="font-label-caps text-label-caps text-on-primary-container opacity-80">TOTAL PATIENTS</p>
+</div>
+</div>
+<div class="bg-tertiary-container p-container-padding rounded-xl flex flex-col justify-between h-40 soft-shadow">
+<span class="material-symbols-outlined text-on-tertiary-container text-3xl">error_outline</span>
+<div>
+<h2 class="font-stat-lg text-stat-lg text-on-tertiary-container">{{ flagged_count }}</h2>
+<p class="font-label-caps text-label-caps text-on-tertiary-container opacity-80">FLAGGED PATIENTS</p>
+</div>
+</div>
+</section>
+
+<section class="space-y-stack-md">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Patient Watchlist</h3>
+<a class="text-primary font-label-caps text-label-caps flex items-center gap-1 hover:underline" href="{{ url_for('doctor_patients') }}">
+                    VIEW ALL <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+{% if patients %}
+<div class="space-y-3">
+{% for p in patients[:6] %}
+<a href="{{ url_for('patient_detail', patient_id=p.id) }}" class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between soft-shadow transition-transform active:scale-[0.98]">
+<div class="flex items-center gap-4 min-w-0">
+<div class="w-12 h-12 bg-surface-container-highest rounded-full flex items-center justify-center font-bold text-on-surface-variant flex-shrink-0 overflow-hidden">
+{% if p.photo_filename %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + p.photo_filename) }}" alt=""/>{% else %}{{ p.name.split(' ')|map('first')|join('')|upper }}{% endif %}
+</div>
+<div class="min-w-0">
+<p class="font-body-lg text-body-lg text-on-surface truncate">{{ p.name }}</p>
+<p class="font-body-md text-body-md text-on-surface-variant">{{ 'Last log: ' + p.last_log_display if p.last_log_display else 'No readings yet' }}</p>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1 flex-shrink-0">
+{% if p.active_flags > 0 %}
+<span class="px-3 py-1 bg-tertiary/10 text-tertiary font-label-caps text-[10px] rounded-full flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-tertiary rounded-full animate-pulse"></span>
+                            FLAGGED
+                        </span>
+{% else %}
+<span class="px-3 py-1 bg-primary/10 text-primary font-label-caps text-[10px] rounded-full flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                            STABLE
+                        </span>
+{% endif %}
+{% if p.latest_value %}<p class="font-label-caps text-[12px] {{ 'text-tertiary' if p.active_flags > 0 else 'text-primary' }} font-bold">{{ p.latest_value }} {{ p.latest_unit }}</p>{% endif %}
+</div>
+</a>
+{% endfor %}
+</div>
+{% else %}
+<div class="bento-card border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-3xl">group</span>
+<span class="text-sm">No patients yet.</span>
+</div>
+{% endif %}
+</section>
+
+{% if trend_insight %}
+<section class="relative overflow-hidden rounded-2xl bg-secondary p-container-padding text-on-secondary">
+<div class="relative z-10 flex flex-col gap-2">
+<h4 class="font-headline-sm text-headline-sm">Clinical Trends</h4>
+<p class="font-body-md text-body-md opacity-90">{{ trend_insight }}</p>
+<a href="{{ url_for('doctor_patients') }}" class="mt-2 w-fit px-4 py-2 bg-on-secondary text-secondary font-label-caps text-label-caps rounded-full active:scale-95 transition-transform">
+                    VIEW PATIENTS
+                </a>
+</div>
+<div class="absolute top-0 right-0 w-32 h-full opacity-10 pointer-events-none">
+<svg class="w-full h-full text-on-secondary fill-current" viewBox="0 0 100 100">
+<circle cx="80" cy="20" r="40"></circle>
+<circle cx="100" cy="80" r="30"></circle>
+</svg>
+</div>
+</section>
+{% endif %}
+</main>
+
+<a href="{{ url_for('new_patient') }}" class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center transition-transform active:scale-90 z-40" aria-label="Add patient">
+<span class="material-symbols-outlined text-3xl">add</span>
+</a>
+{% include "_stitch_bottomnav_doctor.html" %}
+</body></html>

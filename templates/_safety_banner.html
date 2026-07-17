@@ -1,0 +1,6 @@
+{% macro safety_banner(text="This app does not calculate insulin doses. Always follow your doctor's prescribed regimen.") %}
+<div class="flex items-start gap-3 bg-tertiary-container/30 text-on-tertiary-container rounded-lg px-4 py-3">
+<span class="material-symbols-outlined text-tertiary text-[20px] flex-shrink-0">info</span>
+<span class="text-body-md font-body-md text-on-background">{{ text }}</span>
+</div>
+{% endmacro %}

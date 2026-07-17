@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+{% set page_title = "Vytari - Care Plan" %}
+{% include "_stitch_head.html" %}
+<style>
+    .bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .bento-full { grid-column: span 2; }
+</style>
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+{% set topbar_title = "My Care Plan" %}
+{% set back_url = url_for('patient_dashboard') %}
+{% include "_stitch_topbar.html" %}
+<main class="px-margin-page pt-20 pb-28 max-w-md sm:max-w-2xl mx-auto">
+{% include "_stitch_flash.html" %}
+
+<section class="mb-stack-lg">
+{% if current %}
+<div class="flex items-center gap-2 bg-secondary-container/30 rounded-lg p-3 border border-secondary-container/50">
+<span class="material-symbols-outlined text-secondary filled">info</span>
+<p class="font-body-md text-body-md text-on-secondary-container">This plan is read-only. Contact {{ current.doctor_name }} to request changes.</p>
+</div>
+{% endif %}
+</section>
+
+{% if current %}
+<div class="space-y-4">
+<div class="bg-surface-container-lowest rounded-xl p-container-padding shadow-[0_4px_20px_rgba(61,105,43,0.05)] border border-outline-variant/30">
+<div class="flex justify-between items-start mb-4">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1">GLUCOSE TARGETS</span>
+<h2 class="font-headline-sm text-headline-sm">Standard Range &middot; v{{ current.version }}</h2>
+</div>
+<div class="bg-primary-container/20 p-2 rounded-full">
+<span class="material-symbols-outlined text-primary filled">track_changes</span>
+</div>
+</div>
+<div class="flex items-center gap-6 py-2">
+<div class="text-center">
+<p class="font-stat-lg text-stat-lg text-primary">{{ current.target_min|round|int }}</p>
+<p class="font-label-caps text-label-caps text-outline uppercase">Min {{ current.unit }}</p>
+</div>
+<div class="h-12 w-px bg-outline-variant"></div>
+<div class="text-center">
+<p class="font-stat-lg text-stat-lg text-primary">{{ current.target_max|round|int }}</p>
+<p class="font-label-caps text-label-caps text-outline uppercase">Max {{ current.unit }}</p>
+</div>
+</div>
+{% if range_bar %}
+<div class="mt-6">
+<div class="flex justify-between font-label-caps text-label-caps text-outline mb-2">
+<span>CRITICAL LOW &lt; {{ range_bar.critical_low }}</span>
+<span>CRITICAL HIGH &gt; {{ range_bar.critical_high }}</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-error" style="width: {{ range_bar.low_pct }}%"></div>
+<div class="h-full bg-primary" style="width: {{ range_bar.mid_pct }}%"></div>
+<div class="h-full bg-tertiary" style="width: {{ range_bar.high_pct }}%"></div>
+</div>
+</div>
+{% endif %}
+</div>
+
+{% if current.basal_name or current.bolus_name %}
+<div class="bg-surface-container-lowest rounded-xl p-container-padding shadow-[0_4px_20px_rgba(61,105,43,0.05)] border border-outline-variant/30">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-secondary">medication</span>
+<h2 class="font-headline-sm text-headline-sm">Insulin Regimen</h2>
+</div>
+<div class="space-y-4">
+{% if current.basal_name %}
+<div class="flex items-center justify-between p-4 bg-surface rounded-xl border border-outline-variant/20">
+<div class="flex gap-4 items-center">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-on-secondary-container filled">opacity</span>
+</div>
+<div>
+<h3 class="font-body-lg text-body-lg font-bold">{{ current.basal_name }}</h3>
+{% if current.basal_description %}<p class="font-body-md text-body-md text-on-surface-variant">{{ current.basal_description }}</p>{% endif %}
+</div>
+</div>
+<div class="text-right flex-shrink-0">
+{% if current.basal_units %}<p class="font-headline-sm text-headline-sm text-secondary">{{ current.basal_units }}</p>{% endif %}
+{% if current.basal_frequency %}<p class="font-label-caps text-label-caps text-outline">{{ current.basal_frequency|upper }}</p>{% endif %}
+</div>
+</div>
+{% endif %}
+{% if current.bolus_name %}
+<div class="flex items-center justify-between p-4 bg-surface rounded-xl border border-outline-variant/20">
+<div class="flex gap-4 items-center">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-on-primary-container filled">restaurant</span>
+</div>
+<div>
+<h3 class="font-body-lg text-body-lg font-bold">{{ current.bolus_name }}</h3>
+{% if current.bolus_description %}<p class="font-body-md text-body-md text-on-surface-variant">{{ current.bolus_description }}</p>{% endif %}
+</div>
+</div>
+<div class="text-right flex-shrink-0">
+{% if current.bolus_ratio %}<p class="font-headline-sm text-headline-sm text-primary">{{ current.bolus_ratio }}</p>{% endif %}
+<p class="font-label-caps text-label-caps text-outline">CARB RATIO</p>
+</div>
+</div>
+{% endif %}
+</div>
+</div>
+{% endif %}
+
+{% if current.instructions %}
+<div class="bg-surface-container-lowest rounded-xl p-container-padding shadow-[0_4px_20px_rgba(61,105,43,0.05)] border border-outline-variant/30">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">clinical_notes</span>
+<h2 class="font-headline-sm text-headline-sm">Physician Notes</h2>
+</div>
+<div class="flex gap-4">
+<div class="min-w-[48px] h-[48px] rounded-xl overflow-hidden bg-primary-container/40 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary filled">medical_services</span>
+</div>
+<div>
+<p class="font-body-lg text-body-lg text-on-surface">&ldquo;{{ current.instructions }}&rdquo;</p>
+<p class="font-label-caps text-label-caps text-outline mt-2">UPDATED BY {{ current.doctor_name|upper }} &middot; {{ current.created_at }}</p>
+</div>
+</div>
+</div>
+{% endif %}
+
+<div class="bg-tertiary-container/20 rounded-xl p-container-padding border border-tertiary-container/50">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-tertiary filled">emergency_home</span>
+<h2 class="font-headline-sm text-headline-sm text-on-tertiary-fixed-variant">General Hypo Protocol</h2>
+</div>
+<ul class="space-y-2 list-none font-body-md text-body-md text-on-tertiary-fixed-variant">
+<li class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary flex-shrink-0"></span>
+                        Recheck glucose every 15 minutes until it returns to your target range.
+                    </li>
+<li class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary flex-shrink-0"></span>
+                        Follow your doctor's instructions for treating a low, then recheck.
+                    </li>
+</ul>
+<a href="{{ url_for('emergency_info') }}" class="inline-block mt-3 text-sm font-bold text-tertiary">Full emergency guidance &rarr;</a>
+</div>
+</div>
+
+{% if history %}
+<h3 class="font-headline-sm text-headline-sm mt-stack-lg mb-stack-sm">Previous versions</h3>
+<div class="flex flex-col gap-stack-sm">
+{% for h in history %}
+<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center justify-between border border-outline-variant/30">
+<div>
+<p class="font-bold text-on-surface">{{ h.target_min }}&ndash;{{ h.target_max }} {{ h.unit }}</p>
+<p class="text-sm text-on-surface-variant">{{ h.created_at }}</p>
+</div>
+<span class="bg-surface-container-high text-on-surface-variant text-[11px] font-bold px-2.5 py-1 rounded-full">v{{ h.version }}</span>
+</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="mt-8 rounded-2xl overflow-hidden relative h-48" style="background: linear-gradient(135deg, #3d692b 0%, #2c6577 100%);">
+<div class="absolute inset-0 flex flex-col justify-end p-6">
+<p class="text-white font-headline-sm text-headline-sm">Your care team is with you.</p>
+<p class="text-white/80 font-body-md text-body-md">Message {{ current.doctor_name }} anytime</p>
+</div>
+</div>
+
+{% else %}
+<div class="bento-card border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center gap-2 text-on-surface-variant min-h-[140px]">
+<span class="material-symbols-outlined text-3xl">track_changes</span>
+<span class="text-sm">Your doctor hasn't set a care plan yet.</span>
+</div>
+{% endif %}
+</main>
+{% include "_stitch_bottomnav_patient.html" %}
+</body></html>

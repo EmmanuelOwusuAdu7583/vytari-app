@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Log Insulin - Vytari" %}
+{% include "_stitch_head.html" %}
+<style>
+    .soft-shadow {
+        box-shadow: 0 20px 30px rgba(61, 105, 43, 0.05);
+    }
+    .active-pill {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .scroll-hide::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+{% set topbar_title = "Log Insulin" %}
+{% set back_url = url_for('log_menu') %}
+{% include "_stitch_topbar.html" %}
+<main class="pt-20 pb-28 px-margin-page max-w-md sm:max-w-2xl mx-auto">
+{% include "_stitch_flash.html" %}
+{% from "_safety_banner.html" import safety_banner %}
+<div class="my-stack-md">{{ safety_banner("This logs what you took, not a recommendation. Always follow your doctor's prescribed regimen.") }}</div>
+
+<form method="POST" id="insulin-form" class="flex flex-col gap-6">
+<input type="hidden" name="insulin_type" id="insulin-type-input" value="rapid-acting"/>
+<input type="hidden" name="units" id="units-input" value="8"/>
+<input type="hidden" name="injection_site" id="site-input" value=""/>
+<input type="hidden" name="dose_at" id="dose-at-input" value="{{ now }}"/>
+
+<div class="bg-surface-container-lowest p-container-padding rounded-xl soft-shadow">
+<label class="font-label-caps text-label-caps text-outline block mb-4 uppercase">Insulin Type</label>
+<div class="grid grid-cols-2 gap-3">
+<button type="button" class="active-pill flex flex-col items-center justify-center p-4 rounded-xl border-2 border-primary-container bg-primary-container/20 text-primary" id="rapid-btn" onclick="setType('rapid-acting')">
+<span class="material-symbols-outlined mb-2 filled">bolt</span>
+<span class="font-body-lg text-body-lg">Rapid-acting</span>
+</button>
+<button type="button" class="active-pill flex flex-col items-center justify-center p-4 rounded-xl border-2 border-surface-container text-on-surface-variant bg-surface-container-low" id="long-btn" onclick="setType('long-acting')">
+<span class="material-symbols-outlined mb-2">schedule</span>
+<span class="font-body-lg text-body-lg">Long-acting</span>
+</button>
+</div>
+</div>
+
+<div class="bg-surface-container-lowest p-container-padding rounded-xl soft-shadow flex flex-col items-center">
+<label class="font-label-caps text-label-caps text-outline block mb-2 w-full text-left uppercase">Dosage Amount</label>
+<div class="flex items-center justify-between w-full max-w-[280px] py-4">
+<button type="button" class="w-16 h-16 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center hover:scale-95 transition-transform active:scale-90" onclick="changeUnits(-1)">
+<span class="material-symbols-outlined text-[32px]">remove</span>
+</button>
+<div class="flex flex-col items-center">
+<span class="font-stat-lg text-stat-lg text-on-surface tabular-nums" id="unit-display">08</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant -mt-1">UNITS</span>
+</div>
+<button type="button" class="w-16 h-16 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:scale-95 transition-transform active:scale-90" onclick="changeUnits(1)">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+</div>
+</div>
+
+<div class="bg-surface-container-lowest p-container-padding rounded-xl soft-shadow">
+<div class="flex flex-col gap-4">
+<div>
+<label class="font-label-caps text-label-caps text-outline block mb-2 uppercase">Injection Time</label>
+<div class="relative">
+<input class="w-full h-14 pl-4 pr-12 rounded-xl bg-surface-container-low border-none focus:ring-2 focus:ring-primary font-body-lg text-body-lg text-on-surface" id="timestamp" type="time"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">event_repeat</span>
+</div>
+</div>
+<div>
+<label class="font-label-caps text-label-caps text-outline block mb-2 uppercase">Injection Site (Optional)</label>
+<div class="flex gap-2 overflow-x-auto scroll-hide pb-1">
+{% for site in injection_sites %}
+<button type="button" class="site-btn px-4 py-2 rounded-full border border-outline-variant text-body-md whitespace-nowrap hover:bg-surface-variant transition-colors" data-site="{{ site }}" onclick="setSite(this)">{{ site }}</button>
+{% endfor %}
+</div>
+</div>
+</div>
+</div>
+
+<div class="mt-4">
+<button type="submit" id="save-btn" class="w-full h-16 rounded-full text-on-primary font-headline-sm text-headline-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 liquid-glass liquid-expand">
+<span class="material-symbols-outlined">check_circle</span>
+                    Save Log
+                </button>
+</div>
+</form>
+</main>
+{% include "_stitch_bottomnav_patient.html" %}
+
+<div class="fixed inset-0 z-[100] bg-surface flex flex-col items-center justify-center p-margin-page transition-all duration-500 opacity-0 pointer-events-none translate-y-full" id="success-overlay">
+<div class="relative flex flex-col items-center text-center">
+<div class="w-24 h-24 rounded-full bg-primary-container flex items-center justify-center mb-6 scale-0 transition-transform duration-700 delay-300" id="success-icon">
+<span class="material-symbols-outlined text-on-primary-container text-[48px] filled">check</span>
+</div>
+<h2 class="font-display-lg text-display-lg text-on-surface mb-2">Log Recorded</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[280px]">Your insulin dose has been synchronized with your care plan.</p>
+</div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  var t = document.getElementById('timestamp');
+  var now = new Date();
+  t.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+});
+
+var currentUnits = 8;
+
+function changeUnits(amount) {
+  currentUnits = Math.max(0, Math.min(99, currentUnits + amount));
+  var display = document.getElementById('unit-display');
+  display.innerText = currentUnits.toString().padStart(2, '0');
+  document.getElementById('units-input').value = currentUnits;
+  display.classList.add('scale-110');
+  setTimeout(function () { display.classList.remove('scale-110'); }, 100);
+}
+
+function setType(type) {
+  document.getElementById('insulin-type-input').value = type;
+  var rapidBtn = document.getElementById('rapid-btn');
+  var longBtn = document.getElementById('long-btn');
+  var rapidIcon = rapidBtn.querySelector('.material-symbols-outlined');
+  var longIcon = longBtn.querySelector('.material-symbols-outlined');
+
+  if (type === 'rapid-acting') {
+    rapidBtn.classList.add('border-primary-container', 'bg-primary-container/20', 'text-primary');
+    rapidBtn.classList.remove('border-surface-container', 'text-on-surface-variant', 'bg-surface-container-low');
+    rapidIcon.style.fontVariationSettings = "'FILL' 1";
+    longBtn.classList.remove('border-primary-container', 'bg-primary-container/20', 'text-primary');
+    longBtn.classList.add('border-surface-container', 'text-on-surface-variant', 'bg-surface-container-low');
+    longIcon.style.fontVariationSettings = "'FILL' 0";
+  } else {
+    longBtn.classList.add('border-primary-container', 'bg-primary-container/20', 'text-primary');
+    longBtn.classList.remove('border-surface-container', 'text-on-surface-variant', 'bg-surface-container-low');
+    longIcon.style.fontVariationSettings = "'FILL' 1";
+    rapidBtn.classList.remove('border-primary-container', 'bg-primary-container/20', 'text-primary');
+    rapidBtn.classList.add('border-surface-container', 'text-on-surface-variant', 'bg-surface-container-low');
+    rapidIcon.style.fontVariationSettings = "'FILL' 0";
+  }
+}
+
+function setSite(btn) {
+  var input = document.getElementById('site-input');
+  var already = btn.classList.contains('bg-primary-container/20');
+  document.querySelectorAll('.site-btn').forEach(function (b) {
+    b.classList.remove('bg-primary-container/20', 'border-primary', 'text-primary');
+  });
+  if (!already) {
+    btn.classList.add('bg-primary-container/20', 'border-primary', 'text-primary');
+    input.value = btn.getAttribute('data-site');
+  } else {
+    input.value = '';
+  }
+}
+
+document.getElementById('insulin-form').addEventListener('submit', function (e) {
+  if (currentUnits <= 0) {
+    e.preventDefault();
+    alert('Enter at least 1 unit.');
+    return;
+  }
+  var t = document.getElementById('timestamp').value;
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('dose-at-input').value = today + 'T' + t;
+
+  e.preventDefault();
+  var form = e.target;
+  var overlay = document.getElementById('success-overlay');
+  var icon = document.getElementById('success-icon');
+  var saveBtn = document.getElementById('save-btn');
+  saveBtn.disabled = true;
+
+  fetch(form.action || window.location.href, { method: 'POST', body: new FormData(form) })
+    .then(function (resp) {
+      if (resp.redirected) {
+        overlay.classList.remove('opacity-0', 'translate-y-full', 'pointer-events-none');
+        overlay.classList.add('opacity-100', 'translate-y-0');
+        setTimeout(function () {
+          icon.classList.remove('scale-0');
+          icon.classList.add('scale-100');
+        }, 300);
+        setTimeout(function () { window.location.href = resp.url; }, 1600);
+      } else {
+        return resp.text().then(function (html) {
+          document.open();
+          document.write(html);
+          document.close();
+        });
+      }
+    })
+    .catch(function () { form.submit(); });
+});
+</script>
+</body></html>

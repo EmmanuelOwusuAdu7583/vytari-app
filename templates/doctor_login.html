@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Doctor Login - Vytari" %}
+{% include "_stitch_head.html" %}
+<style>
+    .provider-gradient {
+        background: linear-gradient(180deg, #f0f9f9 0%, #e8f5e9 100%);
+    }
+    .soft-shadow { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); }
+    .btn-active:active { transform: scale(0.98); }
+</style>
+</head>
+<body class="flex flex-col min-h-screen text-on-surface provider-gradient">
+<header class="w-full flex items-center px-margin-page py-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl filled">water_drop</span>
+<span class="font-headline-md-mobile text-headline-md-mobile font-extrabold text-primary tracking-tight">Vytari</span>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center px-margin-page">
+<div class="w-full flex flex-col items-center text-center mt-2 mb-10">
+<div class="w-[100px] h-[100px] bg-white rounded-2xl flex items-center justify-center p-5 mb-8 shadow-sm">
+<img alt="Vytari Logo" class="w-full h-full object-contain rounded-lg" src="{{ url_for('static', filename='icons/icon-192.png') }}"/>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary">Healthcare Provider</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Access your patient monitoring dashboard</p>
+</div>
+
+<div class="w-full max-w-md bg-white rounded-[2rem] p-8 soft-shadow border border-white/50">
+{% include "_stitch_flash.html" %}
+<form class="space-y-6 mt-2" method="POST" id="loginForm">
+<div class="space-y-3">
+<label class="block font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider pl-1" for="doctor-code">Doctor Code</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline/60 text-[22px]">badge</span>
+<input class="w-full h-14 pl-12 pr-4 bg-surface-container-low border-none rounded-2xl focus:ring-2 focus:ring-primary/20 font-body-lg text-body-lg placeholder:text-outline/40 transition-all" id="doctor-code" name="doctor_code" placeholder="Enter your unique code" type="text" style="text-transform:uppercase;" required autofocus/>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center pl-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" for="password">Password</label>
+</div>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline/60 text-[22px]">lock</span>
+<input class="w-full h-14 pl-12 pr-12 bg-surface-container-low border-none rounded-2xl focus:ring-2 focus:ring-primary/20 font-body-lg text-body-lg placeholder:text-outline/40 transition-all" id="password" name="password" placeholder="Enter password" type="password" required/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-outline/60 hover:text-primary transition-colors focus:outline-none" onclick="togglePasswordVisibility()" type="button">
+<span class="material-symbols-outlined" id="visibility-icon">visibility</span>
+</button>
+</div>
+</div>
+<div class="flex items-center pl-1">
+<label class="flex items-center group cursor-pointer">
+<input class="peer h-5 w-5 rounded-md border-outline-variant text-primary focus:ring-primary/30 transition-all" type="checkbox" name="keep_signed_in" value="yes"/>
+<span class="ml-3 font-body-md text-on-surface-variant group-hover:text-on-surface transition-colors">Keep me signed in</span>
+</label>
+</div>
+<div class="pt-2">
+<button class="w-full h-14 text-on-primary font-body-lg text-body-lg rounded-full flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all liquid-glass liquid-expand" type="submit" id="submitBtn">
+<span>Sign In</span>
+<span class="material-symbols-outlined text-[20px]">login</span>
+</button>
+</div>
+</form>
+<div class="my-8 border-t border-surface-container-high"></div>
+<div class="flex flex-col items-center gap-4">
+<p class="font-body-md text-on-surface-variant text-center">
+                Are you a patient?
+            </p>
+<a class="flex items-center gap-2 text-primary font-body-md font-bold hover:opacity-80 transition-all" href="{{ url_for('patient_login') }}">
+<span class="material-symbols-outlined text-[20px]">person</span>
+                Sign in here
+            </a>
+</div>
+</div>
+</main>
+<footer class="mt-auto py-10 flex flex-col items-center gap-3">
+<div class="flex items-center gap-6 text-outline font-label-caps text-[11px] font-bold uppercase tracking-widest">
+<a class="hover:text-primary transition-colors" href="{{ url_for('privacy') }}">Privacy Policy</a>
+<span class="w-1 h-1 bg-outline/20 rounded-full"></span>
+<a class="hover:text-primary transition-colors" href="{{ url_for('terms') }}">Terms of Service</a>
+</div>
+<p class="text-[10px] text-outline/50"><a href="{{ url_for('index') }}">&larr; Back to home</a></p>
+</footer>
+<script>
+function togglePasswordVisibility() {
+  var passwordInput = document.getElementById('password');
+  var visibilityIcon = document.getElementById('visibility-icon');
+  if (passwordInput.type === 'password') { passwordInput.type = 'text'; visibilityIcon.textContent = 'visibility_off'; }
+  else { passwordInput.type = 'password'; visibilityIcon.textContent = 'visibility'; }
+}
+
+document.getElementById('loginForm').addEventListener('submit', function () {
+  var btn = document.getElementById('submitBtn');
+  btn.innerHTML = '<span class="animate-spin material-symbols-outlined">sync</span> Signing in...';
+  btn.disabled = true;
+});
+</script>
+</body></html>

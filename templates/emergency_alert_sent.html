@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Alert Sent — Vytari" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+<main class="flex-1 flex flex-col justify-center px-margin-page py-stack-lg max-w-md sm:max-w-2xl mx-auto w-full gap-stack-md">
+<div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding text-center">
+<div class="w-16 h-16 rounded-full bg-primary-container/40 flex items-center justify-center text-primary mx-auto mb-stack-sm">
+<span class="material-symbols-outlined text-4xl filled">check_circle</span>
+</div>
+<p class="font-headline-md text-headline-md text-on-background">Your doctor has been alerted</p>
+<p class="text-sm text-on-surface-variant mt-stack-sm">Sent {{ alert.created_at }}{% if alert.message %} &mdash; "{{ alert.message }}"{% endif %}</p>
+{% if alert.latitude and alert.longitude %}<p class="text-sm text-on-surface-variant">Location shared: {{ '%.4f'|format(alert.latitude) }}°, {{ '%.4f'|format(alert.longitude) }}°</p>{% endif %}
+<p class="text-sm text-on-surface-variant mt-stack-md">If your symptoms are severe or worsening, don't wait &mdash; call emergency services.</p>
+</div>
+
+<a href="tel:911" class="w-full bg-tertiary text-on-tertiary rounded-2xl p-5 flex flex-col items-center gap-1 shadow-lg shadow-tertiary/20 liquid-expand">
+<span class="material-symbols-outlined text-3xl filled">call</span>
+<span class="font-headline-sm text-headline-sm">Call Emergency Services</span>
+</a>
+
+<a href="{{ url_for('patient_dashboard') }}" class="w-full border border-outline-variant text-primary py-3.5 rounded-full font-headline-sm text-headline-sm text-center bg-surface-container-lowest">Back to home</a>
+</main>
+</body></html>

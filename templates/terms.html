@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Terms — Vytari" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+{% set topbar_title = "Terms of Use" %}
+{% set back_url = url_for('index') %}
+{% include "_stitch_topbar.html" %}
+<main class="pt-20 pb-12 px-margin-page max-w-md sm:max-w-2xl mx-auto flex flex-col gap-stack-md">
+{% from "_safety_banner.html" import safety_banner %}
+{{ safety_banner("Vytari does not calculate or recommend insulin doses. It surfaces patterns in your logged data; only your doctor interprets that data and directs your care.") }}
+<div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding">
+<p class="text-on-surface-variant">Vytari is a care-coordination tool, not a substitute for professional medical advice. In an emergency, use the Emergency Alert feature or contact local emergency services directly.</p>
+</div>
+</main>
+</body></html>

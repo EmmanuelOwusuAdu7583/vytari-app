@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Profile — Vytari" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+{% set topbar_title = "Profile" %}
+{% include "_stitch_topbar.html" %}
+<main class="pt-20 pb-28 px-margin-page max-w-md sm:max-w-2xl mx-auto flex flex-col gap-stack-md">
+{% include "_stitch_flash.html" %}
+
+<div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding text-center">
+<div class="w-16 h-16 rounded-full bg-primary-container/40 flex items-center justify-center text-primary mx-auto mb-stack-sm overflow-hidden">
+{% if doctor.photo_filename %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + doctor.photo_filename) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-3xl filled">medical_services</span>{% endif %}
+</div>
+<p class="font-headline-sm text-headline-sm text-on-background">{{ doctor.name }}</p>
+<p class="text-sm text-on-surface-variant">{{ doctor.doctor_code }}</p>
+<form method="POST" action="{{ url_for('doctor_profile_photo') }}" enctype="multipart/form-data" class="mt-stack-md">
+<label class="inline-flex items-center gap-2 border border-outline-variant text-primary px-4 py-2 rounded-full text-sm font-bold cursor-pointer">
+<span class="material-symbols-outlined text-[18px]">photo_camera</span> Change photo
+<input type="file" name="photo" accept="image/*" onchange="this.form.submit()" class="hidden"/>
+</label>
+</form>
+</div>
+
+<div class="bg-surface-container-lowest rounded-xl card-shadow p-4">
+<p class="font-stat-lg text-stat-lg text-primary leading-none">{{ patient_count }}</p>
+<p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">Patients</p>
+</div>
+
+<div class="flex flex-col gap-stack-sm">
+<a href="{{ url_for('doctor_notifications') }}" class="bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4">
+<div class="w-11 h-11 rounded-full bg-secondary-container/60 flex items-center justify-center text-on-secondary-container flex-shrink-0"><span class="material-symbols-outlined">notifications</span></div>
+<span class="flex-1 font-semibold text-on-surface">Notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</a>
+<a href="{{ url_for('logout') }}" class="bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4">
+<div class="w-11 h-11 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary flex-shrink-0"><span class="material-symbols-outlined">logout</span></div>
+<span class="flex-1 font-semibold text-tertiary">Sign out</span>
+</a>
+</div>
+</main>
+{% include "_stitch_bottomnav_doctor.html" %}
+</body></html>

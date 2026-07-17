@@ -1,0 +1,29 @@
+{% from "_nav_lamp.html" import nav_lamp %}
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-2 bg-surface-container-lowest shadow-md rounded-t-xl max-w-md sm:max-w-2xl mx-auto" aria-label="Patient navigation">
+<a class="relative flex flex-col items-center justify-center gap-0.5 {{ 'text-primary bg-primary-container/40 rounded-full px-3 py-1' if active == 'home' else 'text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full' }} transition-all" href="{{ url_for('patient_dashboard') }}">
+<span class="material-symbols-outlined text-[22px]"{% if active == 'home' %} style="font-variation-settings: 'FILL' 1;"{% endif %}>home</span>
+<span class="text-[10px] font-bold">Home</span>
+{% if active == 'home' %}{{ nav_lamp() }}{% endif %}
+</a>
+<a class="relative flex flex-col items-center justify-center gap-0.5 {{ 'text-primary bg-primary-container/40 rounded-full px-3 py-1' if active == 'log' else 'text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full' }} transition-all" href="{{ url_for('log_menu') }}">
+<span class="material-symbols-outlined text-[22px]"{% if active == 'log' %} style="font-variation-settings: 'FILL' 1;"{% endif %}>water_drop</span>
+<span class="text-[10px] font-bold">Log</span>
+{% if active == 'log' %}{{ nav_lamp() }}{% endif %}
+</a>
+<a class="relative flex flex-col items-center justify-center gap-0.5 {{ 'text-primary bg-primary-container/40 rounded-full px-3 py-1' if active == 'trends' else 'text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full' }} transition-all" href="{{ url_for('patient_trends') }}">
+<span class="material-symbols-outlined text-[22px]"{% if active == 'trends' %} style="font-variation-settings: 'FILL' 1;"{% endif %}>monitoring</span>
+<span class="text-[10px] font-bold">Trends</span>
+{% if active == 'trends' %}{{ nav_lamp() }}{% endif %}
+</a>
+<a class="relative flex flex-col items-center justify-center gap-0.5 {{ 'text-primary bg-primary-container/40 rounded-full px-3 py-1' if active == 'chat' else 'text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full' }} transition-all" href="{{ url_for('patient_chat') }}">
+<span class="material-symbols-outlined text-[22px]"{% if active == 'chat' %} style="font-variation-settings: 'FILL' 1;"{% endif %}>chat_bubble</span>
+<span class="text-[10px] font-bold">Chat</span>
+{% if unread_messages_count and unread_messages_count > 0 %}<span class="absolute top-0 right-2 w-2 h-2 rounded-full bg-tertiary border border-surface-container-lowest"></span>{% endif %}
+{% if active == 'chat' %}{{ nav_lamp() }}{% endif %}
+</a>
+<a class="relative flex flex-col items-center justify-center gap-0.5 {{ 'text-primary bg-primary-container/40 rounded-full px-3 py-1' if active == 'profile' else 'text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full' }} transition-all" href="{{ url_for('patient_profile') }}">
+<span class="material-symbols-outlined text-[22px]"{% if active == 'profile' %} style="font-variation-settings: 'FILL' 1;"{% endif %}>person</span>
+<span class="text-[10px] font-bold">Profile</span>
+{% if active == 'profile' %}{{ nav_lamp() }}{% endif %}
+</a>
+</nav>

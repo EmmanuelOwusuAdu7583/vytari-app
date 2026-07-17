@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Vytari | Home" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+{% set topbar_title = greeting + ", " + patient['name'].split(' ')[0] %}
+{% include "_stitch_topbar.html" %}
+<main class="pt-20 pb-28 px-margin-page max-w-md sm:max-w-2xl mx-auto flex flex-col gap-stack-md">
+{% include "_stitch_flash.html" %}
+
+{% from "_safety_banner.html" import safety_banner %}
+{{ safety_banner() }}
+
+<section class="grid grid-cols-4 gap-2">
+<a class="flex flex-col items-center gap-2 group" href="{{ url_for('log_glucose') }}">
+<div class="w-14 h-14 bg-primary-container text-on-primary-container rounded-2xl flex items-center justify-center group-hover:scale-105 transition-all card-shadow">
+<span class="material-symbols-outlined text-2xl">water_drop</span>
+</div>
+<span class="text-[11px] font-semibold text-center">Glucose</span>
+</a>
+<a class="flex flex-col items-center gap-2 group" href="{{ url_for('log_insulin') }}">
+<div class="w-14 h-14 bg-secondary-container text-on-secondary-container rounded-2xl flex items-center justify-center group-hover:scale-105 transition-all card-shadow">
+<span class="material-symbols-outlined text-2xl">vaccines</span>
+</div>
+<span class="text-[11px] font-semibold text-center">Insulin</span>
+</a>
+<a class="flex flex-col items-center gap-2 group" href="{{ url_for('log_meal') }}">
+<div class="w-14 h-14 bg-primary-container text-on-primary-container rounded-2xl flex items-center justify-center group-hover:scale-105 transition-all card-shadow">
+<span class="material-symbols-outlined text-2xl">restaurant</span>
+</div>
+<span class="text-[11px] font-semibold text-center">Meal</span>
+</a>
+<a class="flex flex-col items-center gap-2 group" href="{{ url_for('log_symptoms') }}">
+<div class="w-14 h-14 bg-tertiary-container text-on-tertiary-container rounded-2xl flex items-center justify-center group-hover:scale-105 transition-all card-shadow">
+<span class="material-symbols-outlined text-2xl">sick</span>
+</div>
+<span class="text-[11px] font-semibold text-center">Symptoms</span>
+</a>
+</section>
+
+<section>
+<div class="flex justify-between items-center mb-stack-sm">
+<h3 class="font-headline-sm text-headline-sm">Recent readings</h3>
+<a class="text-primary text-sm font-bold" href="{{ url_for('patient_trends') }}">See trends</a>
+</div>
+{% if recent_readings %}
+<div class="flex flex-col gap-stack-sm">
+{% for r in recent_readings %}
+<div class="bento-card bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4">
+<div class="w-11 h-11 rounded-full bg-primary-container/30 flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-bold text-on-surface">{{ r.value }} {{ r.unit }}</p>
+<p class="text-sm text-on-surface-variant">{{ r.tag or 'random' }} &middot; {{ r.reading_at }}</p>
+</div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="bento-card border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center gap-2 text-on-surface-variant min-h-[100px]">
+<span class="material-symbols-outlined text-3xl">water_drop</span>
+<span class="text-sm">No readings logged yet.</span>
+</div>
+{% endif %}
+</section>
+
+<section>
+<div class="flex justify-between items-center mb-stack-sm">
+<h3 class="font-headline-sm text-headline-sm">Your care plan</h3>
+</div>
+{% if care_plan %}
+<a href="{{ url_for('view_care_plan') }}" class="bento-card bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4">
+<div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined">track_changes</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-bold text-on-surface">Target: {{ care_plan.target_min }}&ndash;{{ care_plan.target_max }} {{ care_plan.unit }}</p>
+<p class="text-sm text-on-surface-variant">Set by your doctor &middot; v{{ care_plan.version }}</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</a>
+{% else %}
+<div class="bento-card border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center gap-2 text-on-surface-variant min-h-[100px]">
+<span class="material-symbols-outlined text-3xl">track_changes</span>
+<span class="text-sm">Your doctor hasn't set a care plan yet.</span>
+</div>
+{% endif %}
+</section>
+
+<a href="{{ url_for('emergency_alert') }}" class="w-full bg-tertiary text-on-tertiary rounded-2xl p-5 flex flex-col items-center gap-1 shadow-lg shadow-tertiary/20 liquid-expand">
+<span class="material-symbols-outlined text-3xl filled">emergency</span>
+<span class="font-headline-sm text-headline-sm">Emergency Alert</span>
+<span class="text-[11px] opacity-90">For genuinely urgent situations</span>
+</a>
+</main>
+{% include "_stitch_bottomnav_patient.html" %}
+</body></html>

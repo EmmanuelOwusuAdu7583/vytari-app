@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = patient.name + " — Vytari" %}
+{% include "_stitch_head.html" %}
+<style>
+    .filled-icon { font-variation-settings: 'FILL' 1; }
+    .custom-scrollbar::-webkit-scrollbar { display: none; }
+    .gauge-animation {
+        transition: stroke-dashoffset 1s ease-out;
+    }
+</style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-28">
+{% set topbar_title = "Patient Details" %}
+{% set back_url = url_for('doctor_patients') %}
+{% include "_stitch_topbar.html" %}
+<main class="px-margin-page py-stack-md max-w-md sm:max-w-2xl mx-auto flex flex-col gap-gutter-card">
+{% include "_stitch_flash.html" %}
+
+<section class="bg-surface-container-lowest rounded-xl p-container-padding shadow-[0_4px_20px_rgba(61,105,43,0.04)] flex items-center gap-4">
+<div class="w-16 h-16 rounded-full overflow-hidden bg-surface-variant flex-shrink-0 flex items-center justify-center">
+{% if patient.photo_filename %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + patient.photo_filename) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-on-surface-variant text-3xl">person</span>{% endif %}
+</div>
+<div class="flex-1 min-w-0">
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate">{{ patient.name }}</h2>
+<div class="flex gap-2 items-center text-on-surface-variant flex-wrap">
+{% if patient.age %}<span class="font-body-md text-body-md">{{ patient.age }} yrs</span><span class="w-1 h-1 rounded-full bg-outline-variant"></span>{% endif %}
+<span class="font-body-md text-body-md">{{ patient.diabetes_type or patient.patient_code }}</span>
+</div>
+</div>
+<a class="w-12 h-12 flex items-center justify-center bg-secondary-container text-on-secondary-container rounded-full active:scale-90 transition-transform flex-shrink-0" href="{{ url_for('doctor_patient_chat', patient_id=patient.id) }}">
+<span class="material-symbols-outlined filled-icon">chat</span>
+</a>
+</section>
+
+{% if active_flags %}
+<section class="flex flex-col gap-stack-sm">
+<div class="flex justify-between items-center px-1">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase">Critical Alerts</h3>
+<span class="text-xs font-bold text-tertiary">{{ active_flags|length }} ACTIVE</span>
+</div>
+{% for f in active_flags %}
+<div class="bg-tertiary-container/30 border border-tertiary-container rounded-xl p-stack-md flex flex-col gap-3">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary mt-0.5">warning</span>
+<div class="flex-1">
+<p class="font-body-lg text-body-lg text-on-tertiary-fixed-variant">{{ f.flag_type|replace('_', ' ')|capitalize }}</p>
+<p class="font-body-md text-body-md text-on-tertiary-fixed-variant/80">{{ f.flag_reason }}</p>
+</div>
+<form method="POST" action="{{ url_for('resolve_flag', flag_id=f.id) }}">
+<input type="hidden" name="patient_id" value="{{ patient.id }}"/>
+<button type="submit" class="bg-tertiary text-on-tertiary px-4 py-2 rounded-full font-label-caps text-label-caps active:scale-95 transition-all whitespace-nowrap">RESOLVE</button>
+</form>
+</div>
+</div>
+{% endfor %}
+</section>
+{% endif %}
+
+<div class="grid grid-cols-2 gap-gutter-card">
+<div class="col-span-1 bg-surface-container-lowest rounded-xl p-container-padding flex flex-col items-center justify-center relative overflow-hidden">
+<div class="relative w-24 h-24">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-variant" cx="48" cy="48" fill="transparent" r="45" stroke="currentColor" stroke-width="6"></circle>
+{% if gauge %}
+<circle class="text-primary gauge-animation" cx="48" cy="48" fill="transparent" r="45" stroke="currentColor" stroke-linecap="round" stroke-width="6" stroke-dasharray="{{ gauge.circumference }}" stroke-dashoffset="{{ gauge.offset }}"></circle>
+{% endif %}
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-display-lg text-[24px] leading-tight text-on-surface">{{ (tir_pct ~ '%') if tir_pct is not none else 'N/A' }}</span>
+</div>
+</div>
+<p class="mt-3 font-label-caps text-label-caps text-on-surface-variant text-center">TIME IN RANGE</p>
+</div>
+<div class="col-span-1 flex flex-col gap-gutter-card">
+<div class="flex-1 bg-primary-container/20 rounded-xl p-4 flex flex-col justify-center">
+<span class="font-label-caps text-[10px] text-primary uppercase">Avg Glucose</span>
+<span class="font-headline-sm text-on-primary-container">{{ avg_glucose_display if avg_glucose_display is not none else '—' }} <span class="text-xs font-normal">mg/dL</span></span>
+</div>
+<div class="flex-1 bg-secondary-container/20 rounded-xl p-4 flex flex-col justify-center">
+<span class="font-label-caps text-[10px] text-secondary uppercase">GMI (Est. A1c)</span>
+<span class="font-headline-sm text-on-secondary-container">{{ (gmi ~ '%') if gmi is not none else '—' }}</span>
+</div>
+</div>
+</div>
+
+<section class="bg-surface-container-lowest rounded-xl p-container-padding shadow-sm">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-headline-sm text-headline-sm">{{ '24h' if view == '24H' else '7-Day' }} Glucose Trend</h3>
+<div class="flex gap-2">
+<a href="{{ url_for('patient_detail', patient_id=patient.id, view='24H') }}" class="px-2 py-1 rounded text-[10px] font-bold {{ 'bg-surface-variant text-on-surface-variant' if view == '24H' else 'text-outline' }}">24H</a>
+<a href="{{ url_for('patient_detail', patient_id=patient.id, view='7D') }}" class="px-2 py-1 rounded text-[10px] font-bold {{ 'bg-surface-variant text-on-surface-variant' if view == '7D' else 'text-outline' }}">7D</a>
+</div>
+</div>
+{% if bar_chart %}
+<div class="h-40 w-full relative flex items-end gap-1">
+{% for bar in bar_chart %}
+{% if bar %}
+<div class="flex-1 {{ 'bg-primary/25' if bar.in_range else 'bg-tertiary/30' }} rounded-t-sm" style="height: {{ bar.height_pct }}%;" title="{{ bar.value }} mg/dL"></div>
+{% else %}
+<div class="flex-1 bg-surface-variant/20 rounded-t-sm h-[4%]"></div>
+{% endif %}
+{% endfor %}
+<div class="absolute top-[20%] w-full border-t border-dashed border-outline-variant/30"></div>
+<div class="absolute bottom-[30%] w-full border-t border-dashed border-outline-variant/30"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] text-outline font-bold">
+{% for label in bar_labels %}<span>{{ label }}</span>{% endfor %}
+</div>
+{% else %}
+<div class="h-40 w-full flex items-center justify-center text-sm text-on-surface-variant">No readings in this window.</div>
+{% endif %}
+</section>
+
+{% if recent_insulin %}
+<section class="flex flex-col gap-stack-sm">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant px-1 uppercase">Insulin History</h3>
+<div class="flex gap-3 overflow-x-auto custom-scrollbar pb-2">
+{% for i in recent_insulin %}
+<div class="flex-shrink-0 bg-surface-container-low rounded-xl p-3 w-32 border-l-4 {{ 'border-secondary' if i.category == 'Basal' else 'border-primary' }}">
+<p class="font-label-caps text-[10px] text-outline">{{ i.time_display }}</p>
+<p class="font-headline-sm {{ 'text-secondary' if i.category == 'Basal' else 'text-primary' }}">{{ i.units }}u <span class="text-xs font-normal">{{ i.category }}</span></p>
+{% if i.injection_site %}<p class="text-[10px] text-outline mt-0.5">{{ i.injection_site }}</p>{% endif %}
+</div>
+{% endfor %}
+</div>
+</section>
+{% endif %}
+
+{% if recent_meals or recent_symptoms %}
+<section class="flex flex-col gap-stack-sm">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant px-1 uppercase">Recent Meals &amp; Symptoms</h3>
+<div class="flex flex-col gap-stack-sm">
+{% for m in recent_meals %}
+<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center gap-4 shadow-sm">
+<div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0"><span class="material-symbols-outlined">restaurant</span></div>
+<div class="flex-1"><p class="font-semibold text-on-surface">{{ m.patient_confirmed_carbs or '?' }}g carbs ({{ m.entry_method }})</p><p class="text-sm text-on-surface-variant">{{ m.logged_at }}</p></div>
+</div>
+{% endfor %}
+{% for s in recent_symptoms %}
+<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center gap-4 shadow-sm border-l-4 border-tertiary">
+<div class="w-11 h-11 rounded-full bg-tertiary-container/60 flex items-center justify-center text-on-tertiary-container flex-shrink-0"><span class="material-symbols-outlined">sick</span></div>
+<div class="flex-1"><p class="font-semibold text-on-surface">{{ s.symptoms }}</p><p class="text-sm text-on-surface-variant">{{ s.logged_at }}</p></div>
+</div>
+{% endfor %}
+</div>
+</section>
+{% endif %}
+
+<section class="bg-surface-container-lowest rounded-xl p-container-padding shadow-sm">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-headline-sm text-headline-sm">Care Plan Editor</h3>
+<a href="{{ url_for('edit_care_plan', patient_id=patient.id) }}" class="text-primary font-body-lg flex items-center gap-1 active:scale-95">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                    Edit
+                </a>
+</div>
+{% if care_plan %}
+<div class="space-y-4">
+{% if care_plan.basal_name %}
+<div class="p-3 bg-surface-variant/30 rounded-lg">
+<p class="font-label-caps text-[10px] text-on-surface-variant mb-1">BASAL TARGET</p>
+<p class="font-body-md text-on-surface">{{ care_plan.basal_name }}{% if care_plan.basal_units %} &middot; {{ care_plan.basal_units }}{% endif %}{% if care_plan.basal_frequency %} ({{ care_plan.basal_frequency }}){% endif %}</p>
+</div>
+{% endif %}
+{% if care_plan.bolus_ratio %}
+<div class="p-3 bg-surface-variant/30 rounded-lg">
+<p class="font-label-caps text-[10px] text-on-surface-variant mb-1">CARB RATIO</p>
+<p class="font-body-md text-on-surface">{{ care_plan.bolus_ratio }}{% if care_plan.bolus_name %} &middot; {{ care_plan.bolus_name }}{% endif %}</p>
+</div>
+{% endif %}
+{% if care_plan.instructions %}
+<div class="p-3 bg-surface-variant/30 rounded-lg">
+<p class="font-label-caps text-[10px] text-on-surface-variant mb-1">PHYSICIAN NOTES</p>
+<p class="font-body-md text-on-surface">{{ care_plan.instructions }}</p>
+</div>
+{% endif %}
+</div>
+{% else %}
+<p class="text-sm text-on-surface-variant">No care plan set yet.</p>
+{% endif %}
+</section>
+
+<section class="bg-surface-container-lowest rounded-xl p-container-padding shadow-sm">
+<h3 class="font-headline-sm text-headline-sm mb-stack-sm">Notes</h3>
+<form method="POST" class="flex flex-col gap-stack-sm mb-stack-md">
+<textarea class="border border-outline-variant bg-surface-container-low rounded-lg px-4 py-3 text-on-surface min-h-[80px]" name="note_text" placeholder="Add a note about this patient" required></textarea>
+<button type="submit" class="self-start bg-primary text-on-primary text-sm font-bold px-4 py-2 rounded-full">Add note</button>
+</form>
+<div class="flex flex-col gap-stack-sm">
+{% for n in notes %}
+<div class="p-3 bg-surface-variant/30 rounded-lg">
+<p class="text-on-background whitespace-pre-wrap">{{ n.note_text }}</p>
+<p class="text-sm text-on-surface-variant mt-1">{{ n.doctor_name }} &middot; {{ n.created_at }}</p>
+</div>
+{% endfor %}
+</div>
+</section>
+</main>
+{% include "_stitch_bottomnav_doctor.html" %}
+</body></html>

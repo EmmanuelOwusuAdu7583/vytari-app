@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Patients — Vytari" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+{% set topbar_title = "Patients" %}
+{% include "_stitch_topbar.html" %}
+<main class="pt-20 pb-28 px-margin-page max-w-md sm:max-w-2xl mx-auto flex flex-col gap-stack-md">
+{% include "_stitch_flash.html" %}
+
+<form method="GET" class="flex items-center gap-2 border border-outline-variant bg-surface-container-low rounded-full px-4 h-12">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input type="text" name="q" value="{{ q }}" placeholder="Search by name or code" class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface"/>
+</form>
+
+{% if patients %}
+<div class="flex flex-col gap-stack-sm">
+{% for patient in patients %}
+<a href="{{ url_for('patient_detail', patient_id=patient.id) }}" class="bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4 {{ 'border-l-4 border-tertiary' if patient.active_flags > 0 else 'border-l-4 border-primary' }}">
+<div class="w-11 h-11 rounded-full bg-primary-container/40 flex items-center justify-center text-primary flex-shrink-0 overflow-hidden">
+{% if patient.photo_filename %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + patient.photo_filename) }}" alt=""/>{% else %}{{ patient.name[0]|upper }}{% endif %}
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-bold text-on-surface truncate">{{ patient.name }}</p>
+<p class="text-sm text-on-surface-variant truncate">{{ patient.patient_code }}{% if patient.diabetes_type %} &middot; {{ patient.diabetes_type }}{% endif %}</p>
+</div>
+{% if patient.active_flags > 0 %}
+<span class="flex items-center gap-1 bg-tertiary-container/50 text-on-tertiary-container text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0"><span class="material-symbols-outlined text-[14px]">flag</span>{{ patient.active_flags }}</span>
+{% endif %}
+</a>
+{% endfor %}
+</div>
+{% else %}
+<div class="bento-card border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center gap-2 text-on-surface-variant min-h-[140px]">
+<span class="material-symbols-outlined text-3xl">group</span>
+<span class="text-sm">No patients found.</span>
+</div>
+{% endif %}
+
+<a href="{{ url_for('new_patient') }}" class="w-full bg-primary text-on-primary py-3.5 rounded-full font-headline-sm text-headline-sm shadow-md liquid-glass liquid-expand flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">add</span> Add patient
+</a>
+</main>
+{% include "_stitch_bottomnav_doctor.html" %}
+</body></html>

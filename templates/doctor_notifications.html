@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Notifications — Vytari" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+{% set topbar_title = "Notifications" %}
+{% set back_url = url_for('doctor_dashboard') %}
+{% include "_stitch_topbar.html" %}
+<main class="pt-20 pb-28 px-margin-page max-w-md sm:max-w-2xl mx-auto flex flex-col gap-stack-sm">
+{% if notifications %}
+{% for n in notifications %}
+<a href="{{ n.link or '#' }}" class="bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4 {{ 'border-l-4 border-tertiary' if not n.read_at }}">
+<div class="w-11 h-11 rounded-full bg-primary-container/30 flex items-center justify-center text-primary flex-shrink-0"><span class="material-symbols-outlined">notifications</span></div>
+<div class="flex-1 min-w-0">
+<p class="text-on-surface">{{ n.message }}</p>
+<p class="text-sm text-on-surface-variant">{{ n.created_at }}</p>
+</div>
+</a>
+{% endfor %}
+{% else %}
+<div class="bento-card border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center gap-2 text-on-surface-variant min-h-[140px]">
+<span class="material-symbols-outlined text-3xl">notifications</span>
+<span class="text-sm">No notifications yet.</span>
+</div>
+{% endif %}
+</main>
+{% include "_stitch_bottomnav_doctor.html" %}
+</body></html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Emergency Information — Vytari" %}
+{% include "_stitch_head.html" %}
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+{% set topbar_title = "Emergency Information" %}
+{% set back_url = request.referrer or url_for('index') %}
+{% include "_stitch_topbar.html" %}
+<main class="pt-20 pb-12 px-margin-page max-w-md sm:max-w-2xl mx-auto flex flex-col gap-stack-md">
+{% from "_safety_banner.html" import safety_banner %}
+{{ safety_banner("This is general, doctor-approved reference information. It is not based on your personal data and does not replace calling emergency services.") }}
+
+<div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding">
+<div class="flex items-center gap-3 mb-stack-sm">
+<div class="w-11 h-11 rounded-full bg-secondary-container/60 flex items-center justify-center text-on-secondary-container flex-shrink-0"><span class="material-symbols-outlined">warning</span></div>
+<h3 class="font-headline-sm text-headline-sm">Low blood glucose (hypoglycemia)</h3>
+</div>
+<p class="text-sm text-on-surface-variant">Common signs: shakiness, sweating, confusion, rapid heartbeat, dizziness, blurred vision, irritability.</p>
+<p class="text-sm text-on-surface-variant mt-stack-sm"><strong class="text-on-background">If conscious and able to swallow:</strong> follow your doctor's instructions for treating a low (often a fast-acting sugar source), then recheck glucose after 15 minutes.</p>
+<p class="text-sm text-on-surface-variant mt-stack-sm"><strong class="text-on-background">Seek emergency care immediately if:</strong> the person loses consciousness, has a seizure, or cannot safely swallow.</p>
+</div>
+
+<div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding">
+<div class="flex items-center gap-3 mb-stack-sm">
+<div class="w-11 h-11 rounded-full bg-tertiary-container/60 flex items-center justify-center text-on-tertiary-container flex-shrink-0"><span class="material-symbols-outlined">warning</span></div>
+<h3 class="font-headline-sm text-headline-sm">High blood glucose (hyperglycemia)</h3>
+</div>
+<p class="text-sm text-on-surface-variant">Common signs: excessive thirst, frequent urination, fatigue, blurred vision, nausea, fruity-smelling breath.</p>
+<p class="text-sm text-on-surface-variant mt-stack-sm"><strong class="text-on-background">Seek emergency care immediately if:</strong> there is vomiting, difficulty breathing, confusion, abdominal pain, or fruity breath odor &mdash; these can indicate diabetic ketoacidosis (DKA), a medical emergency.</p>
+</div>
+
+<a href="tel:911" class="w-full bg-tertiary text-on-tertiary rounded-2xl p-5 flex flex-col items-center gap-1 shadow-lg shadow-tertiary/20 liquid-expand">
+<span class="material-symbols-outlined text-3xl filled">call</span>
+<span class="font-headline-sm text-headline-sm">Call Emergency Services</span>
+</a>
+
+<p class="text-sm text-on-surface-variant text-center">For non-emergency questions about your care, use the in-app chat with your doctor instead.</p>
+</main>
+</body></html>

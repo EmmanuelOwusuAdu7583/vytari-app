@@ -1,0 +1,274 @@
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>{{ page_title|default('Vytari') }}</title>
+<link href="{{ url_for('static', filename='manifest.json') }}" rel="manifest"/>
+<meta content="#3d692b" name="theme-color"/>
+<meta content="yes" name="mobile-web-app-capable"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="default" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="Vytari" name="apple-mobile-web-app-title"/>
+<meta content="Vytari" name="application-name"/>
+<link href="{{ url_for('static', filename='icons/icon-192.png') }}" rel="apple-touch-icon"/>
+<link href="{{ url_for('static', filename='icons/icon-192.png') }}" rel="icon" type="image/png"/>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register("{{ url_for('service_worker') }}");
+  });
+}
+</script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed-variant": "#265015",
+                    "surface-container-highest": "#e1e2e4",
+                    "background": "#f8f9fb",
+                    "on-background": "#191c1e",
+                    "surface-container-low": "#f2f4f6",
+                    "on-surface-variant": "#42493d",
+                    "on-tertiary-container": "#a81b25",
+                    "on-primary-container": "#356023",
+                    "inverse-primary": "#a2d48a",
+                    "primary-fixed": "#bef1a3",
+                    "surface-dim": "#d9dadc",
+                    "on-tertiary-fixed-variant": "#920418",
+                    "inverse-on-surface": "#f0f1f3",
+                    "on-error-container": "#93000a",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed-dim": "#98cfe3",
+                    "surface": "#f8f9fb",
+                    "error-container": "#ffdad6",
+                    "primary": "#3d692b",
+                    "secondary-fixed": "#b5ebff",
+                    "inverse-surface": "#2e3132",
+                    "on-tertiary-fixed": "#410005",
+                    "surface-variant": "#e1e2e4",
+                    "tertiary-container": "#ffbab6",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed": "#ffdad7",
+                    "tertiary-fixed-dim": "#ffb3af",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#a2d48a",
+                    "on-secondary-fixed-variant": "#0a4d5e",
+                    "outline": "#73796c",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#f8f9fb",
+                    "on-primary-fixed": "#052100",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "primary-container": "#a7d98e",
+                    "outline-variant": "#c2c9ba",
+                    "on-surface": "#191c1e",
+                    "surface-container-high": "#e7e8ea",
+                    "on-secondary-fixed": "#001f28",
+                    "secondary-container": "#b0e8fd",
+                    "tertiary": "#b4252d",
+                    "surface-tint": "#3d692b",
+                    "secondary": "#2c6577",
+                    "on-secondary-container": "#316a7b",
+                    "surface-container": "#edeef0"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "2rem",
+                    "margin-page": "1.5rem",
+                    "gutter-card": "1rem",
+                    "stack-sm": "0.5rem",
+                    "container-padding": "1.25rem",
+                    "stack-md": "1rem"
+            },
+            "fontFamily": {
+                    "headline-md": ["Manrope"],
+                    "label-caps": ["Manrope"],
+                    "body-lg": ["Manrope"],
+                    "display-lg": ["Manrope"],
+                    "body-md": ["Manrope"],
+                    "headline-sm": ["Manrope"],
+                    "stat-lg": ["Manrope"],
+                    "headline-md-mobile": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "stat-lg": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "700"}],
+                    "headline-md-mobile": ["22px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .card-shadow {
+            box-shadow: 0 20px 40px rgba(61, 105, 43, 0.04);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at 50% 0%, #f0f7ed 0%, #f8f9fb 70%);
+        }
+        .bento-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bento-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(61, 105, 43, 0.08);
+        }
+        @keyframes shimmer-sweep {
+            0% { transform: translateX(-150%) skewX(-25deg); }
+            100% { transform: translateX(150%) skewX(-25deg); }
+        }
+        .liquid-glass {
+            background: rgba(61, 105, 43, 0.85) !important;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        .liquid-glass::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.3) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer-sweep 3s infinite linear;
+            pointer-events: none;
+        }
+        .liquid-glass:hover {
+            transform: scale(1.02);
+            background: rgba(61, 105, 43, 0.95) !important;
+        }
+        .liquid-expand {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .liquid-expand:active {
+            transform: scale(0.97);
+        }
+        .htoggle-switch {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .htoggle-switch input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .htoggle-bg {
+            width: 44px;
+            height: 24px;
+            background: #c2c9ba;
+            border-radius: 9999px;
+            transition: background-color 0.15s;
+        }
+        .htoggle-switch input:checked + .htoggle-bg {
+            background-color: #3d692b;
+        }
+        .htoggle-dot {
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            width: 20px;
+            height: 20px;
+            background: #ffffff;
+            border-radius: 9999px;
+            transition: transform 0.15s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .htoggle-switch input:checked ~ .htoggle-dot {
+            transform: translateX(20px);
+        }
+        .hstar-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+        .hstar-rating input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .hstar-rating label {
+            font-family: 'Material Symbols Outlined';
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 30px;
+            line-height: 1;
+            cursor: pointer;
+            color: #73796c;
+            transition: transform 0.15s, color 0.15s;
+        }
+        .hstar-rating label::before { content: 'star'; }
+        .hstar-rating input:checked ~ label,
+        .hstar-rating label:hover,
+        .hstar-rating label:hover ~ label {
+            color: #3d692b;
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #edeef0 25%, #e1e2e4 50%, #edeef0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            height: 16px;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .tag-chip {
+            transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.15s ease;
+        }
+        .tag-chip:active { transform: scale(0.96); }
+        .tag-chip.selected {
+            border-color: #3d692b;
+            background-color: #a7d98e4d;
+            color: #265015;
+        }
+        @keyframes tubelight-in {
+            from { opacity: 0; transform: translateX(-50%) scaleX(0.4); }
+            to { opacity: 1; transform: translateX(-50%) scaleX(1); }
+        }
+        .tubelight-lamp {
+            animation: tubelight-in 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        input:focus-visible, button:focus-visible, a:focus-visible, textarea:focus-visible, select:focus-visible {
+            outline: 2.5px solid #3d692b;
+            outline-offset: 2px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+        }
+    </style>

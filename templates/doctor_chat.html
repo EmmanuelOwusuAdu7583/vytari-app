@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = patient.name + " — Chat — Vytari" %}
+{% include "_stitch_head.html" %}
+<style>
+    .scroll-hide::-webkit-scrollbar { display: none; }
+    .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+</head>
+<body class="bg-background text-on-background">
+{% set topbar_title = patient.name %}
+{% set back_url = url_for('patient_detail', patient_id=patient.id) %}
+{% include "_stitch_topbar.html" %}
+<main class="max-w-md sm:max-w-2xl mx-auto flex flex-col h-[calc(100vh-64px-84px)] relative">
+<div id="chat-thread" class="flex-grow overflow-y-auto px-margin-page py-6 scroll-hide space-y-stack-md flex flex-col">
+{% for m in messages %}
+{% if m.date_label %}
+<div class="flex justify-center my-stack-md">
+<span class="bg-surface-container text-on-surface-variant font-label-caps text-label-caps px-3 py-1 rounded-full">{{ m.date_label }}</span>
+</div>
+{% endif %}
+<div class="flex flex-col {{ 'items-end self-end' if m.sender_type == 'doctor' else 'items-start self-start' }} gap-2 max-w-[85%]" data-msg-id="{{ m.id }}">
+{% if m.sender_type == 'patient' %}
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase ml-1">{{ patient.name }}</span>
+{% endif %}
+<div class="{{ 'bg-primary text-on-primary rounded-2xl rounded-tr-none shadow-[0_4px_12px_rgba(61,105,43,0.15)]' if m.sender_type == 'doctor' else 'bg-surface-container-lowest text-on-surface rounded-2xl rounded-tl-none shadow-[0_4px_20px_rgba(0,0,0,0.04)]' }} p-container-padding">
+<p class="font-body-md text-body-md">{{ m.message_text }}</p>
+</div>
+<span class="font-label-caps text-[10px] text-on-surface-variant {{ 'mr-1' if m.sender_type == 'doctor' else 'ml-1' }}">{{ m.time_display }}</span>
+</div>
+{% else %}
+<div class="bento-card border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center gap-2 text-on-surface-variant m-auto">
+<span class="material-symbols-outlined text-3xl">chat_bubble</span>
+<span class="text-sm">No messages yet with {{ patient.name }}.</span>
+</div>
+{% endfor %}
+</div>
+
+<div class="bg-background px-margin-page pb-4 pt-2">
+<div class="bg-secondary-container/30 border border-secondary-container/50 rounded-xl px-4 py-3 mb-stack-md flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary text-[20px] mt-0.5">info</span>
+<p class="font-body-md text-body-md text-on-secondary-container">Patients are told to expect a response within 24 hours &mdash; this isn't real-time.</p>
+</div>
+<form method="POST" id="chat-form" class="flex items-center gap-3 bg-surface-container-low p-2 rounded-full border border-outline-variant/30">
+<input class="flex-grow bg-transparent border-none focus:ring-0 font-body-md text-body-md py-2" name="message_text" placeholder="Type a message..." type="text" required autocomplete="off"/>
+<button type="submit" class="bg-primary text-on-primary w-10 h-10 flex items-center justify-center rounded-full shadow-md active:scale-90 transition-all duration-150" aria-label="Send message">
+<span class="material-symbols-outlined filled">send</span>
+</button>
+</form>
+</div>
+</main>
+{% include "_stitch_bottomnav_doctor.html" %}
+
+<script>
+(function () {
+  var thread = document.getElementById('chat-thread');
+  thread.scrollTop = thread.scrollHeight;
+
+  function lastId() {
+    var nodes = thread.querySelectorAll('[data-msg-id]');
+    if (!nodes.length) return 0;
+    return parseInt(nodes[nodes.length - 1].getAttribute('data-msg-id'), 10);
+  }
+
+  function poll() {
+    fetch("{{ url_for('doctor_patient_chat_poll', patient_id=patient.id) }}?after_id=" + lastId())
+      .then(function (r) { return r.json(); })
+      .then(function (msgs) {
+        if (!msgs.length) return;
+        var emptyState = thread.querySelector('.border-dashed');
+        if (emptyState) emptyState.remove();
+        msgs.forEach(function (m) {
+          var isMe = m.sender_type === 'doctor';
+          var wrap = document.createElement('div');
+          wrap.className = 'flex flex-col gap-2 max-w-[85%] ' + (isMe ? 'items-end self-end' : 'items-start self-start');
+          wrap.setAttribute('data-msg-id', m.id);
+          if (!isMe) {
+            var label = document.createElement('span');
+            label.className = 'font-label-caps text-label-caps text-on-surface-variant uppercase ml-1';
+            label.textContent = '{{ patient.name }}';
+            wrap.appendChild(label);
+          }
+          var bubble = document.createElement('div');
+          bubble.className = (isMe
+            ? 'bg-primary text-on-primary rounded-2xl rounded-tr-none shadow-[0_4px_12px_rgba(61,105,43,0.15)]'
+            : 'bg-surface-container-lowest text-on-surface rounded-2xl rounded-tl-none shadow-[0_4px_20px_rgba(0,0,0,0.04)]') + ' p-container-padding';
+          var p = document.createElement('p');
+          p.className = 'font-body-md text-body-md';
+          p.textContent = m.message_text;
+          bubble.appendChild(p);
+          var meta = document.createElement('span');
+          meta.className = 'font-label-caps text-[10px] text-on-surface-variant ' + (isMe ? 'mr-1' : 'ml-1');
+          meta.textContent = m.time_display;
+          wrap.appendChild(bubble);
+          wrap.appendChild(meta);
+          thread.appendChild(wrap);
+        });
+        thread.scrollTop = thread.scrollHeight;
+      })
+      .catch(function () {});
+  }
+
+  setInterval(poll, 4000);
+})();
+</script>
+</body></html>

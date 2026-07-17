@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+{% set page_title = "Emergency Alert | Vytari" %}
+{% include "_stitch_head.html" %}
+<style>
+    @keyframes pulse-ring {
+        0% { transform: scale(0.8); opacity: 0.8; }
+        100% { transform: scale(1.5); opacity: 0; }
+    }
+    .pulse-effect::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 9999px;
+        background-color: white;
+        animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        z-index: -1;
+    }
+    .hold-progress {
+        stroke-dasharray: 283;
+        stroke-dashoffset: 283;
+        transition: stroke-dashoffset 0.1s linear;
+    }
+</style>
+</head>
+<body class="bg-tertiary text-on-tertiary min-h-screen flex flex-col font-body-md overflow-hidden">
+<header class="w-full flex justify-between items-center px-margin-page h-16 relative z-10">
+<a class="p-2 -ml-2 text-on-tertiary flex items-center gap-2 font-body-lg active:scale-95 transition-transform" href="{{ url_for('patient_dashboard') }}">
+<span class="material-symbols-outlined">arrow_back</span>
+<span>Cancel</span>
+</a>
+<span class="material-symbols-outlined text-on-tertiary/50">emergency_home</span>
+</header>
+
+<main class="flex-1 flex flex-col items-center justify-center px-margin-page py-stack-lg text-center gap-stack-lg relative overflow-hidden">
+<div class="absolute inset-0 opacity-20 pointer-events-none">
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+</div>
+
+<div class="space-y-stack-sm z-10">
+<h1 class="font-display-lg text-display-lg uppercase tracking-widest text-on-tertiary">Emergency Alert</h1>
+<p class="font-body-lg text-body-lg max-w-[280px] mx-auto text-on-tertiary/90">
+                Hold the button to notify your care team.
+            </p>
+</div>
+
+<div class="relative flex items-center justify-center w-full max-w-[320px] aspect-square z-10">
+<div class="absolute w-48 h-48 rounded-full border-4 border-on-tertiary/20 pulse-effect"></div>
+<div class="absolute w-64 h-64 rounded-full border-2 border-on-tertiary/10 animate-ping" style="animation-duration: 3s;"></div>
+<div class="relative group cursor-pointer select-none" id="alert-button-container">
+<svg class="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] -rotate-90 pointer-events-none" viewBox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="rgba(255,255,255,0.2)" stroke-width="4"></circle>
+<circle class="hold-progress" cx="50" cy="50" fill="none" id="progress-stroke" r="45" stroke="white" stroke-linecap="round" stroke-width="4"></circle>
+</svg>
+<button class="w-40 h-40 bg-on-tertiary rounded-full shadow-2xl flex flex-col items-center justify-center gap-2 transform active:scale-90 transition-all duration-150" id="alert-trigger">
+<span class="material-symbols-outlined text-tertiary !text-5xl filled">warning</span>
+<span class="font-label-caps text-tertiary tracking-tighter">SOS</span>
+</button>
+</div>
+</div>
+
+<div class="font-label-caps text-label-caps uppercase tracking-widest text-on-tertiary/70 z-10" id="status-message">
+            Tap and hold to send
+        </div>
+
+<div class="w-full bg-white/10 backdrop-blur-md rounded-xl p-container-padding flex items-center gap-gutter-card z-10 border border-white/10">
+<div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-on-tertiary">location_on</span>
+</div>
+<div class="text-left">
+<p class="font-label-caps text-on-tertiary/60">YOUR CURRENT LOCATION</p>
+<p class="font-body-md text-on-tertiary font-bold" id="location-display">Requesting location…</p>
+</div>
+</div>
+</main>
+
+<footer class="p-margin-page pb-safe flex flex-col gap-stack-sm z-10">
+<div class="flex justify-between items-center bg-black/20 rounded-xl p-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-on-tertiary bg-white/20 flex items-center justify-center flex-shrink-0">
+{% if doctor_photo %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + doctor_photo) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-on-tertiary text-[20px]">medical_services</span>{% endif %}
+</div>
+<div>
+<p class="font-label-caps text-on-tertiary/60">PRIMARY CONTACT</p>
+<p class="font-body-md font-bold">{{ doctor_name }}</p>
+</div>
+</div>
+{% if doctor_phone %}
+<a href="tel:{{ doctor_phone }}" class="material-symbols-outlined text-on-tertiary" aria-label="Call {{ doctor_name }}">call</a>
+{% endif %}
+</div>
+</footer>
+
+<form method="POST" id="alert-form" class="hidden">
+<input type="hidden" name="latitude" id="latitude-input"/>
+<input type="hidden" name="longitude" id="longitude-input"/>
+</form>
+
+<div class="fixed inset-0 bg-on-tertiary z-[100] flex flex-col items-center justify-center p-margin-page opacity-0 pointer-events-none transition-opacity duration-500" id="success-screen">
+<div class="w-24 h-24 bg-tertiary rounded-full flex items-center justify-center mb-stack-lg">
+<span class="material-symbols-outlined text-on-tertiary !text-5xl">check_circle</span>
+</div>
+<h2 class="font-display-lg text-display-lg text-tertiary text-center mb-stack-sm">Alert Sent</h2>
+<p class="font-body-lg text-on-surface-variant text-center mb-stack-lg" id="success-message">{{ doctor_name }} has been notified. If your symptoms are severe, call emergency services now.</p>
+<button class="w-full py-4 bg-tertiary text-on-tertiary rounded-full font-headline-sm uppercase tracking-widest" id="success-ok-btn">OK</button>
+</div>
+
+<script>
+var latitude = null, longitude = null;
+if ('geolocation' in navigator) {
+  navigator.geolocation.getCurrentPosition(
+    function (pos) {
+      latitude = pos.coords.latitude;
+      longitude = pos.coords.longitude;
+      document.getElementById('location-display').textContent = latitude.toFixed(4) + '°, ' + longitude.toFixed(4) + '°';
+    },
+    function () {
+      document.getElementById('location-display').textContent = 'Location unavailable';
+    },
+    { timeout: 8000 }
+  );
+} else {
+  document.getElementById('location-display').textContent = 'Location unavailable';
+}
+
+var trigger = document.getElementById('alert-trigger');
+var progressStroke = document.getElementById('progress-stroke');
+var statusMsg = document.getElementById('status-message');
+var successScreen = document.getElementById('success-screen');
+var form = document.getElementById('alert-form');
+
+var holdTimer = null;
+var progress = 0;
+var duration = 2000;
+var interval = 20;
+var sent = false;
+
+function startHold(e) {
+  if (sent) return;
+  e.preventDefault();
+  progress = 0;
+  statusMsg.textContent = 'Hold firmly...';
+  statusMsg.classList.add('animate-pulse');
+
+  holdTimer = setInterval(function () {
+    progress += interval;
+    var percent = (progress / duration) * 100;
+    var offset = 283 - (283 * percent) / 100;
+    progressStroke.style.strokeDashoffset = offset;
+
+    if (progress >= duration) {
+      sendAlert();
+    }
+  }, interval);
+}
+
+function endHold() {
+  clearInterval(holdTimer);
+  if (sent) return;
+  progress = 0;
+  progressStroke.style.strokeDashoffset = 283;
+  statusMsg.textContent = 'Tap and hold to send';
+  statusMsg.classList.remove('animate-pulse');
+}
+
+function showSuccess() {
+  if (latitude !== null) {
+    document.getElementById('success-message').textContent = '{{ doctor_name }} has been notified, including your current location. If your symptoms are severe, call emergency services now.';
+  }
+  successScreen.classList.remove('opacity-0', 'pointer-events-none');
+  successScreen.classList.add('opacity-100');
+  if (window.navigator.vibrate) window.navigator.vibrate([100, 50, 100]);
+}
+
+function sendAlert() {
+  clearInterval(holdTimer);
+  sent = true;
+  statusMsg.textContent = 'Sending...';
+
+  document.getElementById('latitude-input').value = latitude !== null ? latitude : '';
+  document.getElementById('longitude-input').value = longitude !== null ? longitude : '';
+
+  fetch(window.location.href, { method: 'POST', body: new FormData(form) })
+    .then(function (resp) {
+      if (resp.redirected) {
+        window._alertRedirectUrl = resp.url;
+        showSuccess();
+      } else {
+        form.submit();
+      }
+    })
+    .catch(function () {
+      form.submit();
+    });
+}
+
+document.getElementById('success-ok-btn').addEventListener('click', function () {
+  window.location.href = window._alertRedirectUrl || "{{ url_for('patient_dashboard') }}";
+});
+
+trigger.addEventListener('mousedown', startHold);
+window.addEventListener('mouseup', endHold);
+trigger.addEventListener('touchstart', startHold);
+window.addEventListener('touchend', endHold);
+trigger.addEventListener('touchmove', function (e) { e.preventDefault(); });
+</script>
+</body></html>
