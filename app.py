@@ -3,6 +3,8 @@ import sqlite3
 import secrets
 import string
 import uuid
+import psycopg2
+import psycopg2.extras
 from datetime import datetime, date, timedelta
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -15,6 +17,8 @@ app.permanent_session_lifetime = timedelta(days=30)
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 
 DB_PATH = "vytari.db"
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+USE_POSTGRES = bool(DATABASE_URL)
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 ALLOWED_PHOTO_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
@@ -46,8 +50,63 @@ def handle_file_too_large(e):
 
 
 # ---------- Database ----------
+#
+# Two dialects are supported: SQLite for local dev (file on disk), and Postgres
+# (Neon) in production when DATABASE_URL is set. Render's filesystem is ephemeral —
+# a local SQLite file gets wiped every time the service spins down from inactivity
+# and restarts, which silently loses all data. Postgres is durable storage instead.
+#
+# _PgCursor makes the Postgres path a drop-in replacement for sqlite3's behavior so
+# none of the ~100 call sites elsewhere in this file need to change:
+#   - "?" placeholders are translated to psycopg2's "%s" style
+#   - rows come back dict-like (RealDictCursor), matching sqlite3.Row's row["col"] access
+#   - datetime/date values are coerced to isoformat strings, matching how SQLite
+#     stores/returns TIMESTAMP columns as plain text
+#   - INSERT statements get "RETURNING id" appended automatically so cursor.lastrowid
+#     works the same as it does under sqlite3
+
+
+def _normalize_row(row):
+    if row is None:
+        return None
+    for key, value in row.items():
+        if isinstance(value, (datetime, date)):
+            row[key] = value.isoformat()
+    return row
+
+
+class _PgCursor(psycopg2.extras.RealDictCursor):
+    _lastrowid = None
+
+    def execute(self, query, params=None):
+        pg_query = query.replace("?", "%s")
+        is_insert = pg_query.strip()[:6].upper() == "INSERT" and "RETURNING" not in pg_query.upper()
+        if is_insert:
+            pg_query = pg_query.rstrip().rstrip(";") + " RETURNING id"
+        if params is None:
+            super().execute(pg_query)
+        else:
+            super().execute(pg_query, params)
+        self._lastrowid = None
+        if is_insert:
+            row = super().fetchone()
+            self._lastrowid = row["id"] if row else None
+
+    @property
+    def lastrowid(self):
+        return self._lastrowid
+
+    def fetchone(self):
+        return _normalize_row(super().fetchone())
+
+    def fetchall(self):
+        return [_normalize_row(r) for r in super().fetchall()]
+
 
 def get_db():
+    if USE_POSTGRES:
+        conn = psycopg2.connect(DATABASE_URL, cursor_factory=_PgCursor)
+        return conn
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
@@ -58,9 +117,16 @@ def create_database():
     conn = get_db()
     cursor = conn.cursor()
 
-    cursor.execute("""
+    # Postgres has no AUTOINCREMENT keyword (SERIAL is its equivalent) and requires
+    # real boolean defaults to be TRUE/FALSE — but is_current/resolved are compared
+    # against literal 0/1 all over this file (SQLite's boolean storage class), so on
+    # Postgres they're kept as plain INTEGER to match that behavior exactly.
+    id_col = "id SERIAL PRIMARY KEY" if USE_POSTGRES else "id INTEGER PRIMARY KEY AUTOINCREMENT"
+    bool_type = "INTEGER" if USE_POSTGRES else "BOOLEAN"
+
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS doctors (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             doctor_code TEXT UNIQUE NOT NULL,
             name TEXT NOT NULL,
             password TEXT NOT NULL,
@@ -70,9 +136,9 @@ def create_database():
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS patients (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             patient_code TEXT UNIQUE NOT NULL,
             doctor_id INTEGER NOT NULL,
             name TEXT NOT NULL,
@@ -86,9 +152,9 @@ def create_database():
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS glucose_readings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             patient_id INTEGER NOT NULL,
             value REAL NOT NULL,
             unit TEXT NOT NULL,
@@ -99,9 +165,9 @@ def create_database():
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS insulin_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             patient_id INTEGER NOT NULL,
             insulin_type TEXT NOT NULL,
             units REAL NOT NULL,
@@ -112,9 +178,9 @@ def create_database():
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS meal_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             patient_id INTEGER NOT NULL,
             photo_filename TEXT,
             ai_estimated_carbs REAL,
@@ -128,9 +194,9 @@ def create_database():
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS symptom_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             patient_id INTEGER NOT NULL,
             symptoms TEXT NOT NULL,
             notes TEXT,
@@ -140,9 +206,9 @@ def create_database():
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS care_plans (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             patient_id INTEGER NOT NULL,
             doctor_id INTEGER NOT NULL,
             target_min REAL NOT NULL,
@@ -158,28 +224,28 @@ def create_database():
             bolus_ratio TEXT,
             instructions TEXT,
             version INTEGER NOT NULL,
-            is_current BOOLEAN NOT NULL DEFAULT 1,
+            is_current {bool_type} NOT NULL DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (patient_id) REFERENCES patients(id),
             FOREIGN KEY (doctor_id) REFERENCES doctors(id)
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS flags (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             patient_id INTEGER NOT NULL,
             flag_type TEXT NOT NULL,
             flag_reason TEXT NOT NULL,
-            resolved BOOLEAN DEFAULT 0,
+            resolved {bool_type} DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (patient_id) REFERENCES patients(id)
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             patient_id INTEGER NOT NULL,
             doctor_id INTEGER NOT NULL,
             sender_type TEXT NOT NULL,
@@ -191,9 +257,9 @@ def create_database():
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS emergency_alerts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             patient_id INTEGER NOT NULL,
             doctor_id INTEGER NOT NULL,
             message TEXT,
@@ -207,9 +273,9 @@ def create_database():
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS doctor_notes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             patient_id INTEGER NOT NULL,
             doctor_id INTEGER NOT NULL,
             note_text TEXT NOT NULL,
@@ -219,9 +285,9 @@ def create_database():
         )
     """)
 
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS notifications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            {id_col},
             recipient_type TEXT NOT NULL,
             recipient_id INTEGER NOT NULL,
             message TEXT NOT NULL,
@@ -238,6 +304,21 @@ def create_database():
 def migrate_database():
     conn = get_db()
     cursor = conn.cursor()
+
+    if USE_POSTGRES:
+        # Postgres supports idempotent "IF NOT EXISTS" on ADD COLUMN directly, so no
+        # need for SQLite's introspect-then-conditionally-ALTER dance below.
+        cursor.execute("ALTER TABLE insulin_logs ADD COLUMN IF NOT EXISTS injection_site TEXT")
+        for col in ("basal_name", "basal_description", "basal_units", "basal_frequency", "bolus_name", "bolus_description", "bolus_ratio"):
+            cursor.execute(f"ALTER TABLE care_plans ADD COLUMN IF NOT EXISTS {col} TEXT")
+        cursor.execute("ALTER TABLE patients ADD COLUMN IF NOT EXISTS age INTEGER")
+        cursor.execute("ALTER TABLE doctors ADD COLUMN IF NOT EXISTS phone_number TEXT")
+        for col in ("latitude", "longitude"):
+            cursor.execute(f"ALTER TABLE emergency_alerts ADD COLUMN IF NOT EXISTS {col} REAL")
+        conn.commit()
+        conn.close()
+        return
+
     cursor.execute("PRAGMA table_info(insulin_logs)")
     columns = {row["name"] for row in cursor.fetchall()}
     if "injection_site" not in columns:
