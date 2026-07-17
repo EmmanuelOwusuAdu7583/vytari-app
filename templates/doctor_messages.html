@@ -11,7 +11,7 @@
 {% for c in conversations %}
 <a href="{{ url_for('doctor_patient_chat', patient_id=c.id) }}" class="bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4 {{ 'border-l-4 border-tertiary' if c.unread_count > 0 }}">
 <div class="w-11 h-11 rounded-full bg-primary-container/40 flex items-center justify-center text-primary flex-shrink-0 overflow-hidden">
-{% if c.photo_filename %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + c.photo_filename) }}" alt=""/>{% else %}{{ c.name[0]|upper }}{% endif %}
+{% if c.photo_filename %}<img class="w-full h-full object-cover" src="{{ photo_url(c.photo_filename) }}" alt=""/>{% else %}{{ c.name[0]|upper }}{% endif %}
 </div>
 <div class="flex-1 min-w-0">
 <p class="font-bold text-on-surface truncate">{{ c.name }}</p>

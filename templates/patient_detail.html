@@ -19,7 +19,7 @@
 
 <section class="bg-surface-container-lowest rounded-xl p-container-padding shadow-[0_4px_20px_rgba(61,105,43,0.04)] flex items-center gap-4">
 <div class="w-16 h-16 rounded-full overflow-hidden bg-surface-variant flex-shrink-0 flex items-center justify-center">
-{% if patient.photo_filename %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + patient.photo_filename) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-on-surface-variant text-3xl">person</span>{% endif %}
+{% if patient.photo_filename %}<img class="w-full h-full object-cover" src="{{ photo_url(patient.photo_filename) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-on-surface-variant text-3xl">person</span>{% endif %}
 </div>
 <div class="flex-1 min-w-0">
 <h2 class="font-headline-sm text-headline-sm text-on-surface truncate">{{ patient.name }}</h2>

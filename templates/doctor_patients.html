@@ -19,7 +19,7 @@
 {% for patient in patients %}
 <a href="{{ url_for('patient_detail', patient_id=patient.id) }}" class="bg-surface-container-lowest rounded-xl card-shadow p-4 flex items-center gap-4 {{ 'border-l-4 border-tertiary' if patient.active_flags > 0 else 'border-l-4 border-primary' }}">
 <div class="w-11 h-11 rounded-full bg-primary-container/40 flex items-center justify-center text-primary flex-shrink-0 overflow-hidden">
-{% if patient.photo_filename %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + patient.photo_filename) }}" alt=""/>{% else %}{{ patient.name[0]|upper }}{% endif %}
+{% if patient.photo_filename %}<img class="w-full h-full object-cover" src="{{ photo_url(patient.photo_filename) }}" alt=""/>{% else %}{{ patient.name[0]|upper }}{% endif %}
 </div>
 <div class="flex-1 min-w-0">
 <p class="font-bold text-on-surface truncate">{{ patient.name }}</p>

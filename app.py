@@ -1,10 +1,14 @@
 import os
+import io
 import sqlite3
 import secrets
 import string
 import uuid
 import psycopg2
 import psycopg2.extras
+import cloudinary
+import cloudinary.uploader
+import cloudinary.utils
 from datetime import datetime, date, timedelta
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -21,6 +25,14 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 USE_POSTGRES = bool(DATABASE_URL)
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 ALLOWED_PHOTO_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+
+# Photo uploads (doctor/patient profile photos, AI meal-scan photos) default to local
+# disk for dev. On Render that disk is ephemeral — wiped on every inactivity restart,
+# same root cause the database had. Setting CLOUDINARY_URL switches storage to
+# Cloudinary so uploaded photos survive restarts too.
+CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "").strip()
+USE_CLOUDINARY = bool(CLOUDINARY_URL)
+CLOUDINARY_FOLDER = "vytari"
 
 GLUCOSE_TAGS = ["fasting", "post-meal", "bedtime", "random"]
 INSULIN_TYPES = ["rapid-acting", "long-acting"]
@@ -554,11 +566,15 @@ def build_sparkline(readings, width=100, height=30):
     return " ".join(f"{round(x_at(i), 1)},{round(y_at(v), 1)}" for i, v in enumerate(values))
 
 
-def estimate_carbs_from_photo(photo_path):
+def estimate_carbs_from_photo(image_bytes, ext):
     """Returns (food_description, estimated_carbs_grams) for a meal photo — just
     the food phrase (e.g. "a medium portion of rice with stew"), not a full
     sentence, so the caller can build the exact "This looks like a <food> —
     roughly <N>g of carbs" display format reliably instead of guessing.
+
+    Takes raw image bytes (not a path) so it works the same whether the photo
+    ends up on local disk or in Cloudinary — the caller reads the upload once
+    and reuses those bytes for both storage and this vision call.
 
     Uses Claude vision when ANTHROPIC_API_KEY is set; otherwise falls back to a
     clearly-labeled placeholder estimate so the photo-logging flow still works
@@ -571,9 +587,7 @@ def estimate_carbs_from_photo(photo_path):
             import base64
             import json
 
-            with open(photo_path, "rb") as f:
-                image_data = base64.standard_b64encode(f.read()).decode("utf-8")
-            ext = photo_path.rsplit(".", 1)[-1].lower()
+            image_data = base64.standard_b64encode(image_bytes).decode("utf-8")
             media_type = f"image/{'jpeg' if ext == 'jpg' else ext}"
 
             client = anthropic.Anthropic(api_key=api_key)
@@ -612,23 +626,53 @@ def estimate_carbs_from_photo(photo_path):
 
 
 def save_uploaded_photo(file_storage, old_filename=None):
+    """Returns (stored_key, error, raw_bytes, ext). stored_key is a Cloudinary
+    public_id when USE_CLOUDINARY, else a local filename under UPLOAD_FOLDER —
+    photo_url() and this function are the only places that need to know which."""
     if not file_storage or not file_storage.filename:
-        return None, "No file selected."
+        return None, "No file selected.", None, None
 
     ext = file_storage.filename.rsplit(".", 1)[-1].lower() if "." in file_storage.filename else ""
     if ext not in ALLOWED_PHOTO_EXTENSIONS:
-        return None, "Unsupported file type. Use PNG, JPG, GIF, or WEBP."
+        return None, "Unsupported file type. Use PNG, JPG, GIF, or WEBP.", None, None
 
-    filename = f"{uuid.uuid4().hex}.{ext}"
-    safe_name = secure_filename(filename)
-    file_storage.save(os.path.join(UPLOAD_FOLDER, safe_name))
+    raw_bytes = file_storage.read()
+    key = uuid.uuid4().hex
+
+    if USE_CLOUDINARY:
+        public_id = f"{CLOUDINARY_FOLDER}/{key}"
+        cloudinary.uploader.upload(io.BytesIO(raw_bytes), public_id=public_id, resource_type="image", overwrite=True)
+        if old_filename:
+            try:
+                cloudinary.uploader.destroy(old_filename, resource_type="image")
+            except Exception:
+                pass
+        return public_id, None, raw_bytes, ext
+
+    filename = secure_filename(f"{key}.{ext}")
+    with open(os.path.join(UPLOAD_FOLDER, filename), "wb") as f:
+        f.write(raw_bytes)
 
     if old_filename:
         old_path = os.path.join(UPLOAD_FOLDER, old_filename)
         if os.path.exists(old_path):
             os.remove(old_path)
 
-    return safe_name, None
+    return filename, None, raw_bytes, ext
+
+
+def photo_url(stored_key):
+    """Builds a displayable URL from whatever save_uploaded_photo() returned as
+    stored_key — a Cloudinary public_id or a local uploads/ filename."""
+    if not stored_key:
+        return None
+    if USE_CLOUDINARY:
+        url, _ = cloudinary.utils.cloudinary_url(stored_key, secure=True)
+        return url
+    return url_for("static", filename="uploads/" + stored_key)
+
+
+app.jinja_env.globals["photo_url"] = photo_url
 
 
 def login_required_doctor(f):
@@ -1255,7 +1299,7 @@ def doctor_profile():
 @app.route("/doctor/profile/photo", methods=["POST"])
 @login_required_doctor
 def doctor_profile_photo():
-    filename, error = save_uploaded_photo(request.files.get("photo"), session.get("doctor_photo"))
+    filename, error, _, _ = save_uploaded_photo(request.files.get("photo"), session.get("doctor_photo"))
     if error:
         flash(error)
     else:
@@ -1478,13 +1522,13 @@ def log_meal():
             conn.close()
             return redirect(url_for("log_meal"))
 
-        filename, error = save_uploaded_photo(photo)
+        filename, error, raw_bytes, ext = save_uploaded_photo(photo)
         if error:
             flash(error)
             conn.close()
             return redirect(url_for("log_meal"))
 
-        description, estimated_carbs = estimate_carbs_from_photo(os.path.join(UPLOAD_FOLDER, filename))
+        description, estimated_carbs = estimate_carbs_from_photo(raw_bytes, ext)
         cursor.execute("""
             INSERT INTO meal_logs (patient_id, photo_filename, ai_estimated_carbs, ai_description, entry_method, logged_at)
             VALUES (?, ?, ?, ?, 'photo-ai', ?)
@@ -1690,7 +1734,7 @@ def patient_profile():
 @app.route("/patient/profile/photo", methods=["POST"])
 @login_required_patient
 def patient_profile_photo():
-    filename, error = save_uploaded_photo(request.files.get("photo"), session.get("patient_photo"))
+    filename, error, _, _ = save_uploaded_photo(request.files.get("photo"), session.get("patient_photo"))
     if error:
         flash(error)
     else:

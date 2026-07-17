@@ -11,7 +11,7 @@
 <div class="flex items-center justify-between w-full max-w-md">
 <div class="flex items-center gap-3">
 <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-on-primary font-bold overflow-hidden">
-{% if session.doctor_photo %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + session.doctor_photo) }}" alt=""/>{% else %}{{ initials }}{% endif %}
+{% if session.doctor_photo %}<img class="w-full h-full object-cover" src="{{ photo_url(session.doctor_photo) }}" alt=""/>{% else %}{{ initials }}{% endif %}
 </div>
 <div>
 <p class="font-label-caps text-label-caps text-on-surface-variant">Welcome back,</p>
@@ -87,7 +87,7 @@
 <a href="{{ url_for('patient_detail', patient_id=p.id) }}" class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between soft-shadow transition-transform active:scale-[0.98]">
 <div class="flex items-center gap-4 min-w-0">
 <div class="w-12 h-12 bg-surface-container-highest rounded-full flex items-center justify-center font-bold text-on-surface-variant flex-shrink-0 overflow-hidden">
-{% if p.photo_filename %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + p.photo_filename) }}" alt=""/>{% else %}{{ p.name.split(' ')|map('first')|join('')|upper }}{% endif %}
+{% if p.photo_filename %}<img class="w-full h-full object-cover" src="{{ photo_url(p.photo_filename) }}" alt=""/>{% else %}{{ p.name.split(' ')|map('first')|join('')|upper }}{% endif %}
 </div>
 <div class="min-w-0">
 <p class="font-body-lg text-body-lg text-on-surface truncate">{{ p.name }}</p>

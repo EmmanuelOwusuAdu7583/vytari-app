@@ -15,7 +15,7 @@
 <h1 class="font-headline-md-mobile text-headline-md-mobile font-bold text-primary truncate">Dr. {{ doctor_name.replace('Dr. ', '') }}</h1>
 <div class="flex-grow"></div>
 <div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high border-2 border-primary-container flex items-center justify-center flex-shrink-0">
-{% if doctor_photo %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + doctor_photo) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-on-surface-variant">medical_services</span>{% endif %}
+{% if doctor_photo %}<img class="w-full h-full object-cover" src="{{ photo_url(doctor_photo) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-on-surface-variant">medical_services</span>{% endif %}
 </div>
 </div>
 </header>

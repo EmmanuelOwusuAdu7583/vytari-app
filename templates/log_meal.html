@@ -47,7 +47,7 @@
 <div class="bg-surface-container-lowest rounded-xl overflow-hidden meal-card-shadow border border-surface-variant/30">
 {% if display_meal.photo_filename %}
 <div class="relative h-64 w-full">
-<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + display_meal.photo_filename) }}" alt="Your meal photo"/>
+<img class="w-full h-full object-cover" src="{{ photo_url(display_meal.photo_filename) }}" alt="Your meal photo"/>
 <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
 <div class="absolute bottom-4 left-4 flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm">
 <span class="material-symbols-outlined text-primary text-[18px]">auto_awesome</span>

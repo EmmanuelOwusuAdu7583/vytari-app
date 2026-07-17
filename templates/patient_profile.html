@@ -11,7 +11,7 @@
 
 <div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding text-center">
 <div class="w-16 h-16 rounded-full bg-primary-container/40 flex items-center justify-center text-primary mx-auto mb-stack-sm overflow-hidden">
-{% if patient.photo_filename %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + patient.photo_filename) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-3xl">person</span>{% endif %}
+{% if patient.photo_filename %}<img class="w-full h-full object-cover" src="{{ photo_url(patient.photo_filename) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-3xl">person</span>{% endif %}
 </div>
 <p class="font-headline-sm text-headline-sm text-on-background">{{ patient.name }}</p>
 <p class="text-sm text-on-surface-variant">{{ patient.patient_code }}{% if patient.diabetes_type %} &middot; {{ patient.diabetes_type }}{% endif %}</p>

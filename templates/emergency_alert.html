@@ -79,7 +79,7 @@
 <div class="flex justify-between items-center bg-black/20 rounded-xl p-4">
 <div class="flex items-center gap-3">
 <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-on-tertiary bg-white/20 flex items-center justify-center flex-shrink-0">
-{% if doctor_photo %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + doctor_photo) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-on-tertiary text-[20px]">medical_services</span>{% endif %}
+{% if doctor_photo %}<img class="w-full h-full object-cover" src="{{ photo_url(doctor_photo) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-on-tertiary text-[20px]">medical_services</span>{% endif %}
 </div>
 <div>
 <p class="font-label-caps text-on-tertiary/60">PRIMARY CONTACT</p>

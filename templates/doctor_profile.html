@@ -11,7 +11,7 @@
 
 <div class="bg-surface-container-lowest rounded-xl card-shadow p-container-padding text-center">
 <div class="w-16 h-16 rounded-full bg-primary-container/40 flex items-center justify-center text-primary mx-auto mb-stack-sm overflow-hidden">
-{% if doctor.photo_filename %}<img class="w-full h-full object-cover" src="{{ url_for('static', filename='uploads/' + doctor.photo_filename) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-3xl filled">medical_services</span>{% endif %}
+{% if doctor.photo_filename %}<img class="w-full h-full object-cover" src="{{ photo_url(doctor.photo_filename) }}" alt=""/>{% else %}<span class="material-symbols-outlined text-3xl filled">medical_services</span>{% endif %}
 </div>
 <p class="font-headline-sm text-headline-sm text-on-background">{{ doctor.name }}</p>
 <p class="text-sm text-on-surface-variant">{{ doctor.doctor_code }}</p>
