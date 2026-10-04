@@ -573,7 +573,7 @@ def build_sparkline(readings, width=100, height=30):
 def estimate_carbs_from_photo(image_bytes, ext):
     """Returns (food_description, estimated_carbs_grams) for a meal photo — just
     the food phrase (e.g. "a medium portion of rice with stew"), not a full
-    sentence, so the caller can build the exact "This looks like a <food> —
+    sentence, so the caller can build the exact "This looks like <food> —
     roughly <N>g of carbs" display format reliably instead of guessing.
 
     Takes raw image bytes (not a path) so it works the same whether the photo
