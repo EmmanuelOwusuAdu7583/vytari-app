@@ -7,3 +7,4 @@ static/uploads/*
 !static/uploads/.gitkeep
 flask.log
 *.log
+.env

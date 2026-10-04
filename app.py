@@ -13,6 +13,10 @@ from datetime import datetime, date, timedelta
 from functools import wraps
 from werkzeug.utils import secure_filename
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory, jsonify
+from dotenv import load_dotenv
+
+# Local dev: read secrets from .env. No-op on Render, where env vars are set in the dashboard.
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "vytari-fallback-key-for-local-dev-only")
@@ -588,7 +592,18 @@ def estimate_carbs_from_photo(image_bytes, ext):
             import json
 
             image_data = base64.standard_b64encode(image_bytes).decode("utf-8")
-            media_type = f"image/{'jpeg' if ext == 'jpg' else ext}"
+            # Trust the bytes over the filename — phones often save a PNG/WEBP with a
+            # .jpg name, and the API rejects a mismatched media type.
+            if image_bytes[:3] == b"\xff\xd8\xff":
+                media_type = "image/jpeg"
+            elif image_bytes[:8] == b"\x89PNG\r\n\x1a\n":
+                media_type = "image/png"
+            elif image_bytes[:4] == b"GIF8":
+                media_type = "image/gif"
+            elif image_bytes[:4] == b"RIFF" and image_bytes[8:12] == b"WEBP":
+                media_type = "image/webp"
+            else:
+                media_type = f"image/{'jpeg' if ext == 'jpg' else ext}"
 
             client = anthropic.Anthropic(api_key=api_key)
             response = client.messages.create(
@@ -617,7 +632,13 @@ def estimate_carbs_from_photo(image_bytes, ext):
             data = json.loads(text)
             return data["food_description"], round(float(data["estimated_carbs_grams"]), 1)
         except Exception:
-            pass  # fall through to placeholder below
+            # Log why and say so in the placeholder — a bad key or API
+            # error otherwise looks identical to "no key configured".
+            app.logger.exception("Claude carb estimate failed")
+            return (
+                "a meal (the AI photo estimate didn't work this time — please enter the carbs yourself)",
+                45.0,
+            )
 
     return (
         "a meal (AI photo estimate isn't connected yet — set ANTHROPIC_API_KEY to enable it)",
